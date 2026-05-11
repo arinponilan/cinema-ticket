@@ -566,9 +566,23 @@ class ProfilePage extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(color: _gold, width: 3),
                         ),
-                        child: const CircleAvatar(
-                          backgroundColor: Color(0xFF252525),
-                          backgroundImage: AssetImage('assets/icon.png'),
+                        child: const ClipOval(child: _ProfileAvatarIcon()),
+                      ),
+                      Positioned(
+                        left: 12,
+                        top: 12,
+                        right: 12,
+                        bottom: 12,
+                        child: IgnorePointer(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Color(0x55F2C94C),
+                                width: 8,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -713,6 +727,20 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
+class _ProfileAvatarIcon extends StatelessWidget {
+  const _ProfileAvatarIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF2D1D3B),
+      child: const Center(
+        child: Icon(Icons.person, color: ProfilePage._gold, size: 72),
+      ),
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -722,40 +750,45 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 86,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      height: 104,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
         color: ProfilePage._stat,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: ProfilePage._gold,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            alignment: Alignment.centerLeft,
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: Color(0xFFEAE7EA),
-                fontSize: 24,
+                color: ProfilePage._gold,
+                fontSize: 10,
                 fontWeight: FontWeight.w900,
+                height: 1,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            FittedBox(
+              alignment: Alignment.centerLeft,
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  color: Color(0xFFEAE7EA),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
