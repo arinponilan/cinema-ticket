@@ -15,6 +15,14 @@ public class AuthService {
 
     private List<User> users; // From Diagram
 
+    @jakarta.annotation.PostConstruct
+    public void initAdmin() {
+        if (!userRepository.findByEmail("admin@gmail.com").isPresent()) {
+            Admin admin = new Admin("System Admin", "admin@gmail.com", "admin123");
+            userRepository.save(admin);
+        }
+    }
+
     public User login(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent() && user.get().getPassword().equals(password)) {
@@ -27,9 +35,11 @@ public class AuthService {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email sudah terdaftar");
         }
-        User newUser = isAdmin ? new Admin(name, email, password) : new Customer(name, email, password);
+        // Paksa jadi Customer untuk registrasi publik
+        User newUser = new Customer(name, email, password);
         return userRepository.save(newUser);
     }
+
 
     public void logout(User user) {
         // Implementation for logout
