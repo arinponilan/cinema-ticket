@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+String get _apiBaseUrl {
+  const configuredUrl = String.fromEnvironment('API_BASE_URL');
+  if (configuredUrl.isNotEmpty) {
+    return configuredUrl;
+  }
+
+  return defaultTargetPlatform == TargetPlatform.android
+      ? 'http://10.0.2.2:8081'
+      : 'http://localhost:8081';
+}
 
 void main() {
   runApp(const CinemaApp());
@@ -57,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8081/api/auth/register'),
+        Uri.parse('$_apiBaseUrl/api/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameController.text,
@@ -67,6 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }),
       );
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registrasi Berhasil! Silakan Login.')),
@@ -78,9 +91,12 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -105,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
               title: const Text("Register as Admin?", style: TextStyle(color: Colors.white)),
               value: _isAdmin,
               onChanged: (val) => setState(() => _isAdmin = val),
-              activeColor: Colors.amber,
+              activeThumbColor: Colors.amber,
             ),
             const SizedBox(height: 40),
             _isLoading
@@ -135,7 +151,7 @@ class _RegisterPageState extends State<RegisterPage> {
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.amber),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
     );
@@ -167,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8081/api/auth/login'),
+        Uri.parse('$_apiBaseUrl/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -175,6 +191,7 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         final userData = jsonDecode(response.body);
         String role = userData['role'] ?? 'Customer';
@@ -188,9 +205,12 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login Gagal! Email/Password salah.')));
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -245,7 +265,7 @@ class _LoginPageState extends State<LoginPage> {
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.amber),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
     );
@@ -364,9 +384,9 @@ class HomePage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.amber.withOpacity(0.3)),
+          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -393,7 +413,7 @@ class HomePage extends StatelessWidget {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -447,7 +467,7 @@ class PlaceholderPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 80, color: Colors.amber.withOpacity(0.3)),
+          Icon(icon, size: 80, color: Colors.amber.withValues(alpha: 0.3)),
           const SizedBox(height: 20),
           Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           if (extra != null) Text(extra!, style: const TextStyle(color: Colors.amber)),
