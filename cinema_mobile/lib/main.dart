@@ -45,6 +45,14 @@ final List<MovieData> allMovies = [
   MovieData("JOKER", "DRAMA / CRIME", "4.8", "https://image.tmdb.org/t/p/original/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"),
   MovieData("SPIDER-MAN: NO WAY HOME", "ACTION / ADVENTURE", "4.7", "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3NzBiXkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg"),
   MovieData("BATMAN: THE DARK KNIGHT", "ACTION / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg"),
+  MovieData("INTERSTELLAR", "SCI-FI / DRAMA", "4.8", "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg"),
+  MovieData("DUNE: PART TWO", "SCI-FI / ACTION", "4.7", "https://m.media-amazon.com/images/M/MV5BN2QyZGU4ZDctOWMzMy00NTc5LThlOGQtODhmNDI1NmY5YzAwXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
+  MovieData("OPPENHEIMER", "DRAMA / HISTORY", "4.8", "https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg"),
+  MovieData("INSIDE OUT 2", "ANIMATION / COMEDY", "4.6", "https://m.media-amazon.com/images/M/MV5BYTc1MDQ3NjAtOWEzMi00YzE1LWI2OWUtNjQ0OWJkMTlhNWI5XkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
+  MovieData("THE CONJURING", "HORROR / THRILLER", "4.5", "https://m.media-amazon.com/images/M/MV5BMTM3NjA1NDMyMV5BMl5BanBnXkFtZTcwMDQzNDMzOQ@@._V1_.jpg"),
+  MovieData("PARASITE", "THRILLER / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_.jpg"),
+  MovieData("JOHN WICK 4", "ACTION / THRILLER", "4.6", "https://m.media-amazon.com/images/M/MV5BMDExZGMyOTMtMDgyYi00NGIwLWJhMTEtOTdkZGFjNmZiMTEwXkEyXkFqcGdeQXVyMjM4NTM5NDY@._V1_.jpg"),
+  MovieData("GUARDIANS OF THE GALAXY 3", "ACTION / COMEDY", "4.7", "https://m.media-amazon.com/images/M/MV5BMDgxOTdjMzYtZGQxMS00ZTAzLWI4Y2UtMTQzN2VlYjYyZWRiXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg"),
 ];
 
 // --- REGISTER PAGE ---
