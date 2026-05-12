@@ -41,18 +41,42 @@ class MovieData {
 
 // --- DATA DUMMY ---
 final List<MovieData> allMovies = [
+  // ACTION
   MovieData("AVENGERS: ENDGAME", "ACTION / SCI-FI", "4.9", "https://img.fruugo.com/product/7/41/145324147_max.jpg"),
-  MovieData("JOKER", "DRAMA / CRIME", "4.8", "https://image.tmdb.org/t/p/original/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"),
   MovieData("SPIDER-MAN: NO WAY HOME", "ACTION / ADVENTURE", "4.7", "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3NzBiXkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg"),
   MovieData("BATMAN: THE DARK KNIGHT", "ACTION / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg"),
-  MovieData("INTERSTELLAR", "SCI-FI / DRAMA", "4.8", "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg"),
-  MovieData("DUNE: PART TWO", "SCI-FI / ACTION", "4.7", "https://m.media-amazon.com/images/M/MV5BN2QyZGU4ZDctOWMzMy00NTc5LThlOGQtODhmNDI1NmY5YzAwXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
-  MovieData("OPPENHEIMER", "DRAMA / HISTORY", "4.8", "https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg"),
-  MovieData("INSIDE OUT 2", "ANIMATION / COMEDY", "4.6", "https://m.media-amazon.com/images/M/MV5BYTc1MDQ3NjAtOWEzMi00YzE1LWI2OWUtNjQ0OWJkMTlhNWI5XkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
-  MovieData("THE CONJURING", "HORROR / THRILLER", "4.5", "https://m.media-amazon.com/images/M/MV5BMTM3NjA1NDMyMV5BMl5BanBnXkFtZTcwMDQzNDMzOQ@@._V1_.jpg"),
-  MovieData("PARASITE", "THRILLER / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_.jpg"),
   MovieData("JOHN WICK 4", "ACTION / THRILLER", "4.6", "https://m.media-amazon.com/images/M/MV5BMDExZGMyOTMtMDgyYi00NGIwLWJhMTEtOTdkZGFjNmZiMTEwXkEyXkFqcGdeQXVyMjM4NTM5NDY@._V1_.jpg"),
   MovieData("GUARDIANS OF THE GALAXY 3", "ACTION / COMEDY", "4.7", "https://m.media-amazon.com/images/M/MV5BMDgxOTdjMzYtZGQxMS00ZTAzLWI4Y2UtMTQzN2VlYjYyZWRiXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg"),
+  MovieData("TOP GUN: MAVERICK", "ACTION / DRAMA", "4.7", "https://m.media-amazon.com/images/M/MV5BZWYzOGEwNTgtNWU3NS00ZTQ0LWJkODUtMmVhMjIwMjA1ZmQwXkEyXkFqcGdeQXVyMjkwNTAyOQ@@._V1_.jpg"),
+  MovieData("FAST X", "ACTION / ADVENTURE", "4.3", "https://m.media-amazon.com/images/M/MV5BNzZmOTU1ZTEtYzVhNi00NzQxLWI5ZjAtNGRhODQ5NTgyMjkzXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_.jpg"),
+  MovieData("MISSION IMPOSSIBLE: DEAD RECKONING", "ACTION / THRILLER", "4.5", "https://m.media-amazon.com/images/M/MV5BYzFiZjc1YzctMDY3Zi00NGE5LTlmNWEtN2Q3OWFjYjgxNWIyXkEyXkFqcGdeQXVyMTUyMTUzNjQ0._V1_.jpg"),
+
+  // SCI-FI
+  MovieData("INTERSTELLAR", "SCI-FI / DRAMA", "4.8", "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg"),
+  MovieData("DUNE: PART TWO", "SCI-FI / ACTION", "4.7", "https://m.media-amazon.com/images/M/MV5BN2QyZGU4ZDctOWMzMy00NTc5LThlOGQtODhmNDI1NmY5YzAwXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
+  MovieData("INCEPTION", "SCI-FI / THRILLER", "4.8", "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg"),
+  MovieData("THE MATRIX", "SCI-FI / ACTION", "4.7", "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNlYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg"),
+
+  // DRAMA
+  MovieData("JOKER", "DRAMA / CRIME", "4.8", "https://image.tmdb.org/t/p/original/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"),
+  MovieData("OPPENHEIMER", "DRAMA / HISTORY", "4.8", "https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg"),
+  MovieData("PARASITE", "THRILLER / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_.jpg"),
+  MovieData("THE SHAWSHANK REDEMPTION", "DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BMDAyY2FhYjctNDc5OS00MDNlLThiMGUtY2UxYWVkNGY2ZjljXkEyXkFqcGc@._V1_.jpg"),
+  MovieData("FORREST GUMP", "DRAMA / ROMANCE", "4.8", "https://m.media-amazon.com/images/M/MV5BNWIwODRlZTUtY2U3ZS00Yzg1LWJhNzYtMmZiYmEyNmU1NjMwXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_.jpg"),
+
+  // HORROR
+  MovieData("THE CONJURING", "HORROR / THRILLER", "4.5", "https://m.media-amazon.com/images/M/MV5BMTM3NjA1NDMyMV5BMl5BanBnXkFtZTcwMDQzNDMzOQ@@._V1_.jpg"),
+  MovieData("IT", "HORROR / DRAMA", "4.4", "https://m.media-amazon.com/images/M/MV5BZDVkZmI0YzAtNzdjYi00ZjhhLWE1ODEtMWMzMWMzNDA0NmQ4XkEyXkFqcGdeQXVyNzYzODM3Mzg@._V1_.jpg"),
+  MovieData("A QUIET PLACE", "HORROR / SCI-FI", "4.5", "https://m.media-amazon.com/images/M/MV5BMjI0MDMzNTQ0M15BMl5BanBnXkFtZTgwMTM5NzM3NDM@._V1_.jpg"),
+
+  // ANIMATION
+  MovieData("INSIDE OUT 2", "ANIMATION / COMEDY", "4.6", "https://m.media-amazon.com/images/M/MV5BYTc1MDQ3NjAtOWEzMi00YzE1LWI2OWUtNjQ0OWJkMTlhNWI5XkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
+  MovieData("SPIDER-MAN: ACROSS THE SPIDER-VERSE", "ANIMATION / ACTION", "4.8", "https://m.media-amazon.com/images/M/MV5BMzI0NmVkMjEtYmY4MS00ZDMxLTlkZmEtMzU4MDQxYTMzMjU2XkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg"),
+  MovieData("COCO", "ANIMATION / FANTASY", "4.7", "https://m.media-amazon.com/images/M/MV5BYjQ5NjM0Y2YtNjZkNC00ZDhkLWJjMWItN2QyNzFkMDE3ZjAxXkEyXkFqcGdeQXVyODIxMzk5NjA@._V1_.jpg"),
+
+  // ROMANCE / COMEDY
+  MovieData("LA LA LAND", "ROMANCE / MUSICAL", "4.6", "https://m.media-amazon.com/images/M/MV5BMzUzNDM2NzM2MV5BMl5BanBnXkFtZTgwNTM3NTg4OTE@._V1_.jpg"),
+  MovieData("THE GRAND BUDAPEST HOTEL", "COMEDY / DRAMA", "4.6", "https://m.media-amazon.com/images/M/MV5BMzM5NjUxOTEyMl5BMl5BanBnXkFtZTgwNjEyMDM0MDE@._V1_.jpg"),
 ];
 
 // --- REGISTER PAGE ---
