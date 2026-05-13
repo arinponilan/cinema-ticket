@@ -487,7 +487,7 @@ class _NavItem {
 }
 
 // --- PROFILE PAGE ---
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   final String userName;
   final String email;
   final String role;
@@ -508,43 +508,35 @@ class ProfilePage extends StatelessWidget {
   static const _purple = Color(0xFF6F5392);
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String? _statusMessage;
+
+  @override
   Widget build(BuildContext context) {
-    final roleLabel = role.toUpperCase();
+    final roleLabel = widget.role.toUpperCase();
 
     return Scaffold(
-      backgroundColor: _page,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF101010),
-        elevation: 0,
+      backgroundColor: ProfilePage._page,
+      appBar: _ProfileTopBar(
+        title: "PROFILE",
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: _gold),
-          onPressed: onBack,
-        ),
-        title: const Text(
-          "PROFILE",
-          style: TextStyle(
-            color: _gold,
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
+        onBack: widget.onBack,
+        action: IconButton(
+          icon: const Icon(Icons.settings_outlined, color: ProfilePage._gold),
+          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Profile Settings coming soon")),
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined, color: _gold),
-              onPressed: () => _openComingSoon(context, "Profile Settings"),
-            ),
-          ),
-        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF181613), _page, _page],
+            colors: [Color(0xFF181613), ProfilePage._page, ProfilePage._page],
           ),
         ),
         child: SafeArea(
@@ -564,26 +556,12 @@ class ProfilePage extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: _gold, width: 3),
-                        ),
-                        child: const ClipOval(child: _ProfileAvatarIcon()),
-                      ),
-                      Positioned(
-                        left: 12,
-                        top: 12,
-                        right: 12,
-                        bottom: 12,
-                        child: IgnorePointer(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Color(0x55F2C94C),
-                                width: 8,
-                              ),
-                            ),
+                          border: Border.all(
+                            color: ProfilePage._gold,
+                            width: 3,
                           ),
                         ),
+                        child: const ClipOval(child: _ProfileAvatarIcon()),
                       ),
                       Positioned(
                         right: 0,
@@ -592,9 +570,12 @@ class ProfilePage extends StatelessWidget {
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: _gold,
+                            color: ProfilePage._gold,
                             shape: BoxShape.circle,
-                            border: Border.all(color: _page, width: 3),
+                            border: Border.all(
+                              color: ProfilePage._page,
+                              width: 3,
+                            ),
                           ),
                           child: const Icon(
                             Icons.edit,
@@ -608,7 +589,7 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  userName.toUpperCase(),
+                  widget.userName.toUpperCase(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFFE7E4E4),
@@ -618,7 +599,7 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  email,
+                  widget.email,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFF8C8888),
@@ -634,7 +615,7 @@ class ProfilePage extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: _purple,
+                      color: ProfilePage._purple,
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: Text(
@@ -648,6 +629,40 @@ class ProfilePage extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (_statusMessage != null) ...[
+                  const SizedBox(height: 22),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF182719),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF3F7D43)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline,
+                          color: Color(0xFF7DD87F),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _statusMessage!,
+                            style: const TextStyle(
+                              color: Color(0xFFDBF7DD),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 38),
                 const _StatsSection(),
                 const SizedBox(height: 38),
@@ -663,7 +678,7 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 18),
                 Container(
                   decoration: BoxDecoration(
-                    color: _panel,
+                    color: ProfilePage._panel,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -671,19 +686,19 @@ class ProfilePage extends StatelessWidget {
                       _SettingsTile(
                         icon: Icons.lock_outline,
                         title: "Change Password",
-                        onTap: () =>
-                            _openComingSoon(context, "Change Password"),
+                        onTap: _openChangePassword,
                       ),
                       _SettingsTile(
                         icon: Icons.notifications_none,
                         title: "Notifications",
-                        onTap: () => _openComingSoon(context, "Notifications"),
+                        onTap: () =>
+                            _openProfileMenu(const NotificationsPage()),
                       ),
                       _SettingsTile(
                         icon: Icons.payments_outlined,
                         title: "Transaction History",
                         onTap: () =>
-                            _openComingSoon(context, "Transaction History"),
+                            _openProfileMenu(const TransactionHistoryPage()),
                       ),
                     ],
                   ),
@@ -719,11 +734,18 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  void _openComingSoon(BuildContext context, String menu) {
-    Navigator.push(
+  Future<void> _openChangePassword() async {
+    final saved = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (context) => ComingSoonPage(menu: menu)),
+      MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
     );
+    if (saved == true && mounted) {
+      setState(() => _statusMessage = "Change password succeeded");
+    }
+  }
+
+  void _openProfileMenu(Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 }
 
@@ -750,6 +772,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       height: 104,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
@@ -762,15 +785,18 @@ class _StatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: ProfilePage._gold,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                height: 1,
+            FittedBox(
+              alignment: Alignment.centerLeft,
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: const TextStyle(
+                  color: ProfilePage._gold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -804,7 +830,7 @@ class _StatsSection extends StatelessWidget {
         const spacing = 16.0;
         final cardWidth = (constraints.maxWidth - spacing) / 2;
 
-        if (cardWidth < 132) {
+        if (cardWidth < 170) {
           return const Column(
             children: [
               _StatCard(label: "MOVIES WATCHED", value: "42"),
@@ -878,53 +904,756 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-class ComingSoonPage extends StatelessWidget {
-  final String menu;
+class _ProfileTopBar extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
+  final bool centerTitle;
+  final VoidCallback? onBack;
+  final Widget? action;
 
-  const ComingSoonPage({super.key, required this.menu});
+  const _ProfileTopBar({
+    required this.title,
+    this.centerTitle = false,
+    this.onBack,
+    this.action,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(72);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: 72,
+      backgroundColor: const Color(0xFF101010),
+      elevation: 0,
+      centerTitle: centerTitle,
+      leadingWidth: 46,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: ProfilePage._gold, size: 22),
+        onPressed: onBack ?? () => Navigator.pop(context),
+      ),
+      titleSpacing: 0,
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: ProfilePage._gold,
+          fontSize: 20,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0,
+        ),
+      ),
+      actions: action == null ? null : [action!],
+    );
+  }
+}
+
+class _ProfileDetailScaffold extends StatelessWidget {
+  final PreferredSizeWidget appBar;
+  final Widget body;
+
+  const _ProfileDetailScaffold({required this.appBar, required this.body});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF101010),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: ProfilePage._gold),
-          onPressed: () => Navigator.pop(context),
+      backgroundColor: ProfilePage._page,
+      appBar: appBar,
+      body: body,
+      bottomNavigationBar: _ProfileBottomNav(
+        selectedIndex: 3,
+        onTap: (_) => Navigator.pop(context),
+      ),
+    );
+  }
+}
+
+class ChangePasswordPage extends StatefulWidget {
+  const ChangePasswordPage({super.key});
+
+  @override
+  State<ChangePasswordPage> createState() => _ChangePasswordPageState();
+}
+
+class _ChangePasswordPageState extends State<ChangePasswordPage> {
+  final _currentController = TextEditingController();
+  final _newController = TextEditingController();
+  final _confirmController = TextEditingController();
+  bool _showCurrent = false;
+  bool _showNew = false;
+  bool _showConfirm = false;
+
+  @override
+  void dispose() {
+    _currentController.dispose();
+    _newController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfileDetailScaffold(
+      appBar: const _ProfileTopBar(title: "Change Password"),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF171512), ProfilePage._page],
+          ),
         ),
-        centerTitle: true,
-        title: Text(
-          menu.toUpperCase(),
-          style: const TextStyle(
-            color: ProfilePage._gold,
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(28, 76, 28, 110),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 650),
+            padding: const EdgeInsets.fromLTRB(34, 36, 34, 36),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C0D31),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 28,
+                  offset: const Offset(0, 18),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  "Secure Your Account",
+                  style: TextStyle(
+                    color: Color(0xFFECE9F0),
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Ensure your new password is at least 8\ncharacters long and includes a symbol.",
+                  style: TextStyle(
+                    color: Color(0xFFC5B9C8),
+                    fontSize: 16,
+                    height: 1.35,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 34),
+                _PasswordField(
+                  label: "CURRENT PASSWORD",
+                  controller: _currentController,
+                  visible: _showCurrent,
+                  icon: Icons.lock_outline,
+                  onToggle: () => setState(() => _showCurrent = !_showCurrent),
+                ),
+                const SizedBox(height: 28),
+                _PasswordField(
+                  label: "NEW PASSWORD",
+                  controller: _newController,
+                  visible: _showNew,
+                  icon: Icons.lock_outline,
+                  onToggle: () => setState(() => _showNew = !_showNew),
+                ),
+                const SizedBox(height: 28),
+                _PasswordField(
+                  label: "CONFIRM NEW PASSWORD",
+                  controller: _confirmController,
+                  visible: _showConfirm,
+                  icon: Icons.lock_reset,
+                  onToggle: () => setState(() => _showConfirm = !_showConfirm),
+                ),
+                const SizedBox(height: 52),
+                ElevatedButton(
+                  onPressed: _savePassword,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ProfilePage._gold,
+                    foregroundColor: const Color(0xFF2A230D),
+                    minimumSize: const Size(double.infinity, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  child: const Text("SAVE PASSWORD"),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      body: Center(
+    );
+  }
+
+  void _savePassword() {
+    final newPassword = _newController.text;
+    final hasSymbol = RegExp(r'[^A-Za-z0-9]').hasMatch(newPassword);
+    if (_currentController.text.isEmpty ||
+        newPassword.length < 8 ||
+        !hasSymbol ||
+        newPassword != _confirmController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Password must match, use 8 characters, and include a symbol.",
+          ),
+        ),
+      );
+      return;
+    }
+    Navigator.pop(context, true);
+  }
+}
+
+class _PasswordField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final bool visible;
+  final IconData icon;
+  final VoidCallback onToggle;
+
+  const _PasswordField({
+    required this.label,
+    required this.controller,
+    required this.visible,
+    required this.icon,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFFC9B9C8),
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.8,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 60,
+          child: TextField(
+            controller: controller,
+            obscureText: !visible,
+            style: const TextStyle(
+              color: Color(0xFFEFECEF),
+              fontWeight: FontWeight.w700,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFF211F1F),
+              prefixIcon: Icon(icon, color: const Color(0xFFA8892C)),
+              suffixIcon: IconButton(
+                onPressed: onToggle,
+                icon: Icon(
+                  visible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: const Color(0xFF887F7B),
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class NotificationsPage extends StatefulWidget {
+  const NotificationsPage({super.key});
+
+  @override
+  State<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends State<NotificationsPage> {
+  bool _allRead = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final notifications = [
+      _NotificationData(
+        title: "Ticket Reminder",
+        time: "5 HOURS AGO",
+        message:
+            "Don't forget your screening of Dune: Part Two tonight at 8:30 PM. Hall 4, Seat F12.",
+      ),
+      _NotificationData(
+        title: "Upcoming Movie",
+        time: "2 DAYS AGO",
+        message:
+            "Your ticket for Interstellar is ready. See you this Friday at 7:00 PM.",
+      ),
+    ];
+
+    return _ProfileDetailScaffold(
+      appBar: _ProfileTopBar(
+        title: "Notifications",
+        action: TextButton(
+          onPressed: () => setState(() => _allRead = true),
+          child: const Text(
+            "Mark all as read",
+            style: TextStyle(
+              color: Color(0xFFCFC9C0),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 34, 24, 120),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.schedule,
-              size: 78,
-              color: ProfilePage._gold.withValues(alpha: 0.7),
-            ),
-            const SizedBox(height: 22),
-            Text(
-              menu,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
             const Text(
-              "Coming soon",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              "TICKET REMINDERS",
+              style: TextStyle(
+                color: Color(0xFF9E928A),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 18),
+            for (final item in notifications) ...[
+              _NotificationCard(data: item, read: _allRead),
+              const SizedBox(height: 18),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationData {
+  final String title;
+  final String time;
+  final String message;
+
+  const _NotificationData({
+    required this.title,
+    required this.time,
+    required this.message,
+  });
+}
+
+class _NotificationCard extends StatelessWidget {
+  final _NotificationData data;
+  final bool read;
+
+  const _NotificationCard({required this.data, required this.read});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1D1C),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 4,
+              color: read ? Colors.transparent : ProfilePage._gold,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 16, 18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF5B4A8E),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.confirmation_number_outlined,
+                        color: Color(0xFFD7D1EC),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  data.title,
+                                  style: const TextStyle(
+                                    color: Color(0xFFE9E5E2),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                data.time,
+                                style: const TextStyle(
+                                  color: Color(0xFF8B817B),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            data.message,
+                            style: const TextStyle(
+                              color: Color(0xFFC3BAB3),
+                              fontSize: 15,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class TransactionHistoryPage extends StatelessWidget {
+  const TransactionHistoryPage({super.key});
+
+  static const _transactions = [
+    _TransactionData(
+      title: "Interstellar",
+      date: "Oct 24, 2023",
+      seats: "B4, B5",
+      payment: "E-WALLET",
+      price: "\$28.00",
+      imageUrl:
+          "https://image.tmdb.org/t/p/w780/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    ),
+    _TransactionData(
+      title: "Dune: Part Two",
+      date: "Oct 20, 2023",
+      seats: "G12",
+      payment: "E-WALLET",
+      price: "\$14.00",
+      imageUrl:
+          "https://image.tmdb.org/t/p/w780/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    ),
+    _TransactionData(
+      title: "Oppenheimer",
+      date: "Oct 15, 2023",
+      seats: "D1, D2, D3",
+      payment: "E-WALLET",
+      price: "\$42.00",
+      imageUrl:
+          "https://image.tmdb.org/t/p/w780/fm6KqXpk3M2HVveHwCrBSSBaO0V.jpg",
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfileDetailScaffold(
+      appBar: const _ProfileTopBar(title: "Transaction History"),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 22, 24, 124),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Transaction History",
+              style: TextStyle(
+                color: Color(0xFFEDE9E9),
+                fontSize: 27,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              "Review your cinematic journey and ticket details.",
+              style: TextStyle(
+                color: Color(0xFFB2AAA8),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 26),
+            for (final transaction in _transactions) ...[
+              _TransactionCard(data: transaction),
+              const SizedBox(height: 18),
+            ],
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1F1E1C),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Quick Statistics",
+                    style: TextStyle(
+                      color: Color(0xFFDCD8D6),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: const [
+                      Expanded(
+                        child: _HistoryStat(
+                          label: "TOTAL BOOKINGS",
+                          value: "12",
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _HistoryStat(
+                          label: "LOYALTY POINTS",
+                          value: "850",
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TransactionData {
+  final String title;
+  final String date;
+  final String seats;
+  final String payment;
+  final String price;
+  final String imageUrl;
+
+  const _TransactionData({
+    required this.title,
+    required this.date,
+    required this.seats,
+    required this.payment,
+    required this.price,
+    required this.imageUrl,
+  });
+}
+
+class _TransactionCard extends StatelessWidget {
+  final _TransactionData data;
+
+  const _TransactionCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C0D31),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Image.network(
+            data.imageUrl,
+            width: double.infinity,
+            height: 150,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => Container(
+              height: 150,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1C3636), Color(0xFF0D1717)],
+                ),
+              ),
+              child: const Icon(
+                Icons.movie,
+                color: ProfilePage._gold,
+                size: 52,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        data.title,
+                        style: const TextStyle(
+                          color: ProfilePage._gold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3D2E3D),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF705B42)),
+                      ),
+                      child: const Text(
+                        "PAID",
+                        style: TextStyle(
+                          color: ProfilePage._gold,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_month_outlined,
+                      color: Color(0xFFC1B6B8),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      data.date,
+                      style: const TextStyle(
+                        color: Color(0xFFC1B6B8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.event_seat_outlined,
+                      color: Color(0xFFC1B6B8),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      data.seats,
+                      style: const TextStyle(
+                        color: Color(0xFFC1B6B8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Divider(color: Color(0xFF2B1A42), height: 1),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: Color(0xFFC7BEC8),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      data.payment,
+                      style: const TextStyle(
+                        color: Color(0xFFC7BEC8),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      data.price,
+                      style: const TextStyle(
+                        color: ProfilePage._gold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryStat extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _HistoryStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 62,
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2830),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF9F989D),
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              color: ProfilePage._gold,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
       ),
     );
   }
