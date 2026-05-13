@@ -2,6 +2,7 @@ package cinema.controller;
 
 import cinema.dto.LoginRequest;
 import cinema.dto.RegisterRequest;
+import cinema.dto.ChangePasswordRequest;
 import cinema.model.User;
 import cinema.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,20 @@ public class AuthController {
                 request.isAdmin()
             );
             return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        try {
+            authService.changePassword(
+                request.getEmail(),
+                request.getCurrentPassword(),
+                request.getNewPassword()
+            );
+            return ResponseEntity.ok("Password berhasil diubah.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

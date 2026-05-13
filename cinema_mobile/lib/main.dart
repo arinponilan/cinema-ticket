@@ -737,7 +737,9 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _openChangePassword() async {
     final saved = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+      MaterialPageRoute(
+        builder: (context) => ChangePasswordPage(email: widget.email),
+      ),
     );
     if (saved == true && mounted) {
       setState(() => _statusMessage = "Change password succeeded");
@@ -968,7 +970,9 @@ class _ProfileDetailScaffold extends StatelessWidget {
 }
 
 class ChangePasswordPage extends StatefulWidget {
-  const ChangePasswordPage({super.key});
+  final String email;
+
+  const ChangePasswordPage({super.key, required this.email});
 
   @override
   State<ChangePasswordPage> createState() => _ChangePasswordPageState();
@@ -981,6 +985,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool _showCurrent = false;
   bool _showNew = false;
   bool _showConfirm = false;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -1065,7 +1070,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 ),
                 const SizedBox(height: 52),
                 ElevatedButton(
-                  onPressed: _savePassword,
+                  onPressed: _isSaving ? null : _savePassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ProfilePage._gold,
                     foregroundColor: const Color(0xFF2A230D),
@@ -1079,7 +1084,16 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       letterSpacing: 1.1,
                     ),
                   ),
-                  child: const Text("SAVE PASSWORD"),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Color(0xFF2A230D),
+                          ),
+                        )
+                      : const Text("SAVE PASSWORD"),
                 ),
               ],
             ),
@@ -1089,7 +1103,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     );
   }
 
-  void _savePassword() {
+  Future<void> _savePassword() async {
     final newPassword = _newController.text;
     final hasSymbol = RegExp(r'[^A-Za-z0-9]').hasMatch(newPassword);
     if (_currentController.text.isEmpty ||
@@ -1105,7 +1119,40 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       );
       return;
     }
-    Navigator.pop(context, true);
+
+    setState(() => _isSaving = true);
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiBaseUrl/api/auth/change-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': widget.email,
+          'currentPassword': _currentController.text,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        Navigator.pop(context, true);
+      } else {
+        final message = response.body.isNotEmpty
+            ? response.body
+            : 'Failed to change password.';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 }
 
@@ -1488,24 +1535,33 @@ class _TransactionCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          Image.network(
-            data.imageUrl,
-            width: double.infinity,
-            height: 150,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              height: 150,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1C3636), Color(0xFF0D1717)],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final imageHeight = constraints.maxWidth >= 720 ? 280.0 : 220.0;
+
+              return Container(
+                width: double.infinity,
+                height: imageHeight,
+                color: const Color(0xFF120F16),
+                child: Image.network(
+                  data.imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => Container(
+                    height: imageHeight,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1C3636), Color(0xFF0D1717)],
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.movie,
+                      color: ProfilePage._gold,
+                      size: 52,
+                    ),
+                  ),
                 ),
-              ),
-              child: const Icon(
-                Icons.movie,
-                color: ProfilePage._gold,
-                size: 52,
-              ),
-            ),
+              );
+            },
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -1626,34 +1682,50 @@ class _HistoryStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 62,
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      constraints: const BoxConstraints(minHeight: 78),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF2A2830),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF9F989D),
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.8,
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FittedBox(
+              alignment: Alignment.centerLeft,
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: const TextStyle(
+                  color: Color(0xFF9F989D),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  height: 1,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: ProfilePage._gold,
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+            const SizedBox(height: 8),
+            FittedBox(
+              alignment: Alignment.centerLeft,
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                maxLines: 1,
+                style: const TextStyle(
+                  color: ProfilePage._gold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

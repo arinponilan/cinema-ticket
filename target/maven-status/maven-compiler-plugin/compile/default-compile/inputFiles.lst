@@ -19,6 +19,7 @@ C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\j
 C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\model\Transaction.java
 C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\payment\EWalletPayment.java
 C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\repository\TicketRepository.java
+C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\dto\ChangePasswordRequest.java
 C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\payment\Payment.java
 C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\controller\BookingController.java
 C:\Users\Lenovo\OneDrive\Documents\smstr 4\PBO\TubesPBO\cinema-ticket\src\main\java\cinema\repository\MovieRepository.java

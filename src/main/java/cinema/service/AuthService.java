@@ -39,5 +39,17 @@ public class AuthService {
         user.setPassword(newPass);
         userRepository.save(user);
     }
+
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+
+        if (!user.getPassword().equals(currentPassword)) {
+            throw new RuntimeException("Password lama salah");
+        }
+
+        user.setPassword(newPassword);
+        userRepository.save(user);
+    }
 }
 
