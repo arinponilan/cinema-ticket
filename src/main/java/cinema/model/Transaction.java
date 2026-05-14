@@ -1,19 +1,12 @@
 package cinema.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
-@Entity
-@Table(name = "transactions")
 public class Transaction {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int transactionId;
 
-    @OneToOne
-    @JoinColumn(name = "booking_id")
     private Booking booking;
 
     private double total;
@@ -56,4 +49,3 @@ public class Transaction {
     public LocalDateTime getTransactionDate() { return transactionDate; }
     public void setTransactionDate(LocalDateTime transactionDate) { this.transactionDate = transactionDate; }
 }
-

@@ -31,6 +31,7 @@ public class Booking {
     private List<Seat> seats;
 
     private double totalPrice;
+    private String status;
 
     public Booking() {}
 
@@ -51,4 +52,7 @@ public class Booking {
 
     public double getTotalPrice() { return totalPrice; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
