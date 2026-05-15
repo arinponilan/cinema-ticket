@@ -14,6 +14,7 @@ public class Movie {
     private int duration;
     private String synopsis;
     private double price;
+    private String imageUrl;
 
     public Movie() {}
 
@@ -46,5 +47,7 @@ public class Movie {
 
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
-}
 
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+}

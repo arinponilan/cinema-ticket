@@ -1,21 +1,12 @@
 package cinema.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class BookingRequest {
     private int userId;
     private int scheduleId;
     private List<Integer> seatIds;
-
-    @JsonProperty("eWalletType")
-    private String eWalletType;
-
-    @JsonProperty("eWalletPhone")
-    private String eWalletPhone;
-
-    @JsonProperty("eWalletBalance")
-    private double eWalletBalance;
+    private List<String> seatNumbers;
 
     public BookingRequest() {}
 
@@ -28,12 +19,7 @@ public class BookingRequest {
     public List<Integer> getSeatIds() { return seatIds; }
     public void setSeatIds(List<Integer> seatIds) { this.seatIds = seatIds; }
 
-    public String getEWalletType() { return eWalletType; }
-    public void setEWalletType(String eWalletType) { this.eWalletType = eWalletType; }
+    public List<String> getSeatNumbers() { return seatNumbers; }
+    public void setSeatNumbers(List<String> seatNumbers) { this.seatNumbers = seatNumbers; }
 
-    public String getEWalletPhone() { return eWalletPhone; }
-    public void setEWalletPhone(String eWalletPhone) { this.eWalletPhone = eWalletPhone; }
-
-    public double getEWalletBalance() { return eWalletBalance; }
-    public void setEWalletBalance(double eWalletBalance) { this.eWalletBalance = eWalletBalance; }
 }

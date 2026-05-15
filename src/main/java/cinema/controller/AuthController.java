@@ -39,4 +39,17 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody cinema.dto.ChangePasswordRequest request) {
+        boolean success = authService.changePassword(
+            request.getUserId(), 
+            request.getOldPassword(), 
+            request.getNewPassword()
+        );
+        if (success) {
+            return ResponseEntity.ok("Password berhasil diubah!");
+        } else {
+            return ResponseEntity.status(400).body("Password lama salah atau user tidak ditemukan.");
+        }
+    }
 }

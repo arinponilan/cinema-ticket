@@ -5,16 +5,24 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cinema_mobile/main.dart';
 
 void main() {
+<<<<<<< HEAD
   testWidgets('Cinema app opens the login page', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const CinemaApp());
 
     expect(find.text('CINEMA TICKET'), findsOneWidget);
     expect(find.text('SIGN IN'), findsOneWidget);
+=======
+  testWidgets('App loads without crashing', (WidgetTester tester) async {
+    // Build the application and trigger a frame.
+    await tester.pumpWidget(const CinemaApp());
+    await tester.pumpAndSettle();
+
+    // Verify the app widget tree loads correctly.
+    expect(find.byType(CinemaApp), findsOneWidget);
+>>>>>>> 3033a92229b4c4e5e34d9bff2d3a12d403efb7ee
   });
 }
