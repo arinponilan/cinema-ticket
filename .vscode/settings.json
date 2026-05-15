@@ -1,0 +1,4 @@
+{
+    "dart.showTodos": false,
+    "java.compile.nullAnalysis.mode": "automatic"
+}

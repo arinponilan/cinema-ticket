@@ -10,12 +10,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cinema_mobile/main.dart';
 
 void main() {
-  testWidgets('App loads without crashing', (WidgetTester tester) async {
-    // Build the application and trigger a frame.
+  testWidgets('Cinema app opens the login page', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
     await tester.pumpWidget(const CinemaApp());
-    await tester.pumpAndSettle();
 
-    // Verify the app widget tree loads correctly.
-    expect(find.byType(CinemaApp), findsOneWidget);
+    expect(find.text('CINEMA TICKET'), findsOneWidget);
+    expect(find.text('SIGN IN'), findsOneWidget);
   });
 }
