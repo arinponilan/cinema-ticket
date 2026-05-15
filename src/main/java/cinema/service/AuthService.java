@@ -45,9 +45,17 @@ public class AuthService {
         // Implementation for logout
     }
 
-    public void changePassword(User user, String newPass) {
-        user.setPassword(newPass);
-        userRepository.save(user);
+    public boolean changePassword(Integer userId, String oldPassword, String newPassword) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (user.getPassword().equals(oldPassword)) {
+                user.setPassword(newPassword);
+                userRepository.save(user);
+                return true;
+            }
+        }
+        return false;
     }
 }
 

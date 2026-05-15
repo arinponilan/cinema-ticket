@@ -9,6 +9,7 @@ cinema/service/BookingService.class
 cinema/dto/BookingRequest.class
 cinema/model/Booking.class
 cinema/model/Ticket.class
+cinema/dto/BookingHistoryDto.class
 cinema/payment/Payment.class
 cinema/Main.class
 cinema/service/AuthService.class
@@ -25,5 +26,5 @@ cinema/controller/ScheduleController.class
 cinema/model/Admin.class
 cinema/model/User.class
 cinema/model/Schedule.class
+cinema/dto/ProfileSummaryDto.class
 cinema/repository/UserRepository.class
-cinema/repository/TransactionRepository.class
