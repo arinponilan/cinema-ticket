@@ -14,15 +14,19 @@ public class Movie {
     private int duration;
     private String synopsis;
     private double price;
+    private String imageUrl;
+    private String rating;
 
     public Movie() {}
 
-    public Movie(String title, String genre, int duration, String synopsis, double price) {
+    public Movie(String title, String genre, int duration, String synopsis, double price, String imageUrl, String rating) {
         this.title = title;
         this.genre = genre;
         this.duration = duration;
         this.synopsis = synopsis;
         this.price = price;
+        this.imageUrl = imageUrl;
+        this.rating = rating;
     }
 
     public String getInfo() {
@@ -46,5 +50,11 @@ public class Movie {
 
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getRating() { return rating; }
+    public void setRating(String rating) { this.rating = rating; }
 }
 

@@ -32,52 +32,36 @@ class CinemaApp extends StatelessWidget {
 
 // --- MODELS ---
 class MovieData {
+  final int id;
   final String title;
   final String genre;
   final String rating;
   final String imgUrl;
-  MovieData(this.title, this.genre, this.rating, this.imgUrl);
+  final String synopsis;
+  final double price;
+
+  MovieData({
+    required this.id,
+    required this.title,
+    required this.genre,
+    required this.rating,
+    required this.imgUrl,
+    required this.synopsis,
+    required this.price,
+  });
+
+  factory MovieData.fromJson(Map<String, dynamic> json) {
+    return MovieData(
+      id: json['id'],
+      title: json['title'] ?? 'No Title',
+      genre: json['genre'] ?? 'N/A',
+      rating: json['rating'] ?? '0.0',
+      imgUrl: json['imageUrl'] ?? 'https://via.placeholder.com/150',
+      synopsis: json['synopsis'] ?? '',
+      price: (json['price'] as num).toDouble(),
+    );
+  }
 }
-
-// --- DATA DUMMY ---
-final List<MovieData> allMovies = [
-  // ACTION
-  MovieData("AVENGERS: ENDGAME", "ACTION / SCI-FI", "4.9", "https://img.fruugo.com/product/7/41/145324147_max.jpg"),
-  MovieData("SPIDER-MAN: NO WAY HOME", "ACTION / ADVENTURE", "4.7", "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3NzBiXkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg"),
-  MovieData("BATMAN: THE DARK KNIGHT", "ACTION / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg"),
-  MovieData("JOHN WICK 4", "ACTION / THRILLER", "4.6", "https://m.media-amazon.com/images/M/MV5BMDExZGMyOTMtMDgyYi00NGIwLWJhMTEtOTdkZGFjNmZiMTEwXkEyXkFqcGdeQXVyMjM4NTM5NDY@._V1_.jpg"),
-  MovieData("GUARDIANS OF THE GALAXY 3", "ACTION / COMEDY", "4.7", "https://m.media-amazon.com/images/M/MV5BMDgxOTdjMzYtZGQxMS00ZTAzLWI4Y2UtMTQzN2VlYjYyZWRiXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg"),
-  MovieData("TOP GUN: MAVERICK", "ACTION / DRAMA", "4.7", "https://m.media-amazon.com/images/M/MV5BZWYzOGEwNTgtNWU3NS00ZTQ0LWJkODUtMmVhMjIwMjA1ZmQwXkEyXkFqcGdeQXVyMjkwNTAyOQ@@._V1_.jpg"),
-  MovieData("FAST X", "ACTION / ADVENTURE", "4.3", "https://m.media-amazon.com/images/M/MV5BNzZmOTU1ZTEtYzVhNi00NzQxLWI5ZjAtNGRhODQ5NTgyMjkzXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_.jpg"),
-  MovieData("MISSION IMPOSSIBLE: DEAD RECKONING", "ACTION / THRILLER", "4.5", "https://m.media-amazon.com/images/M/MV5BYzFiZjc1YzctMDY3Zi00NGE5LTlmNWEtN2Q3OWFjYjgxNWIyXkEyXkFqcGdeQXVyMTUyMTUzNjQ0._V1_.jpg"),
-
-  // SCI-FI
-  MovieData("INTERSTELLAR", "SCI-FI / DRAMA", "4.8", "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg"),
-  MovieData("DUNE: PART TWO", "SCI-FI / ACTION", "4.7", "https://m.media-amazon.com/images/M/MV5BN2QyZGU4ZDctOWMzMy00NTc5LThlOGQtODhmNDI1NmY5YzAwXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
-  MovieData("INCEPTION", "SCI-FI / THRILLER", "4.8", "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg"),
-  MovieData("THE MATRIX", "SCI-FI / ACTION", "4.7", "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNlYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg"),
-
-  // DRAMA
-  MovieData("JOKER", "DRAMA / CRIME", "4.8", "https://image.tmdb.org/t/p/original/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"),
-  MovieData("OPPENHEIMER", "DRAMA / HISTORY", "4.8", "https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg"),
-  MovieData("PARASITE", "THRILLER / DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_.jpg"),
-  MovieData("THE SHAWSHANK REDEMPTION", "DRAMA", "4.9", "https://m.media-amazon.com/images/M/MV5BMDAyY2FhYjctNDc5OS00MDNlLThiMGUtY2UxYWVkNGY2ZjljXkEyXkFqcGc@._V1_.jpg"),
-  MovieData("FORREST GUMP", "DRAMA / ROMANCE", "4.8", "https://m.media-amazon.com/images/M/MV5BNWIwODRlZTUtY2U3ZS00Yzg1LWJhNzYtMmZiYmEyNmU1NjMwXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_.jpg"),
-
-  // HORROR
-  MovieData("THE CONJURING", "HORROR / THRILLER", "4.5", "https://m.media-amazon.com/images/M/MV5BMTM3NjA1NDMyMV5BMl5BanBnXkFtZTcwMDQzNDMzOQ@@._V1_.jpg"),
-  MovieData("IT", "HORROR / DRAMA", "4.4", "https://m.media-amazon.com/images/M/MV5BZDVkZmI0YzAtNzdjYi00ZjhhLWE1ODEtMWMzMWMzNDA0NmQ4XkEyXkFqcGdeQXVyNzYzODM3Mzg@._V1_.jpg"),
-  MovieData("A QUIET PLACE", "HORROR / SCI-FI", "4.5", "https://m.media-amazon.com/images/M/MV5BMjI0MDMzNTQ0M15BMl5BanBnXkFtZTgwMTM5NzM3NDM@._V1_.jpg"),
-
-  // ANIMATION
-  MovieData("INSIDE OUT 2", "ANIMATION / COMEDY", "4.6", "https://m.media-amazon.com/images/M/MV5BYTc1MDQ3NjAtOWEzMi00YzE1LWI2OWUtNjQ0OWJkMTlhNWI5XkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg"),
-  MovieData("SPIDER-MAN: ACROSS THE SPIDER-VERSE", "ANIMATION / ACTION", "4.8", "https://m.media-amazon.com/images/M/MV5BMzI0NmVkMjEtYmY4MS00ZDMxLTlkZmEtMzU4MDQxYTMzMjU2XkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg"),
-  MovieData("COCO", "ANIMATION / FANTASY", "4.7", "https://m.media-amazon.com/images/M/MV5BYjQ5NjM0Y2YtNjZkNC00ZDhkLWJjMWItN2QyNzFkMDE3ZjAxXkEyXkFqcGdeQXVyODIxMzk5NjA@._V1_.jpg"),
-
-  // ROMANCE / COMEDY
-  MovieData("LA LA LAND", "ROMANCE / MUSICAL", "4.6", "https://m.media-amazon.com/images/M/MV5BMzUzNDM2NzM2MV5BMl5BanBnXkFtZTgwNTM3NTg4OTE@._V1_.jpg"),
-  MovieData("THE GRAND BUDAPEST HOTEL", "COMEDY / DRAMA", "4.6", "https://m.media-amazon.com/images/M/MV5BMzM5NjUxOTEyMl5BMl5BanBnXkFtZTgwNjEyMDM0MDE@._V1_.jpg"),
-];
 
 // --- REGISTER PAGE ---
 class RegisterPage extends StatefulWidget {
@@ -296,37 +280,77 @@ class _MainContainerState extends State<MainContainer> {
 }
 
 // --- HOME PAGE ---
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final String userName;
   final String role;
   final Function(MovieData) onBookNow;
   const HomePage({super.key, required this.userName, required this.role, required this.onBookNow});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<MovieData> _movies = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMovies();
+  }
+
+  Future<void> _fetchMovies() async {
+    try {
+      final response = await http.get(Uri.parse('http://localhost:8081/api/movies'));
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        setState(() {
+          _movies = data.map((m) => MovieData.fromJson(m)).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching movies: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    bool isAdmin = role.toLowerCase() == 'admin';
+    bool isAdmin = widget.role.toLowerCase() == 'admin';
     return Scaffold(
       appBar: AppBar(title: Text(isAdmin ? "ADMIN DASHBOARD" : "TIXTIX PREMIERE", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber)), backgroundColor: Colors.transparent),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Hello, $userName", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            Text("Logged in as $role", style: const TextStyle(color: Colors.amber, fontSize: 12)),
-            const SizedBox(height: 30),
-            if (isAdmin) ...[
-              const Text("Management Tools", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
-              const SizedBox(height: 15),
-              _buildAdminCard(context, Icons.movie, "Movie Management", "EDIT MOVIES"),
-              const SizedBox(height: 15),
-              _buildAdminCard(context, Icons.calendar_today, "Schedule Management", "MANAGE TIMES"),
-            ] else ...[
-              const Text("Now Playing", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
-              const SizedBox(height: 15),
-              ...allMovies.map((m) => Padding(padding: const EdgeInsets.only(bottom: 15), child: _buildMovieCard(context, m))).toList(),
+      body: RefreshIndicator(
+        onRefresh: _fetchMovies,
+        color: Colors.amber,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Hello, ${widget.userName}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text("Logged in as ${widget.role}", style: const TextStyle(color: Colors.amber, fontSize: 12)),
+              const SizedBox(height: 30),
+              if (isAdmin) ...[
+                const Text("Management Tools", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 15),
+                _buildAdminCard(context, Icons.movie, "Movie Management", "EDIT MOVIES"),
+                const SizedBox(height: 15),
+                _buildAdminCard(context, Icons.calendar_today, "Schedule Management", "MANAGE TIMES"),
+              ] else ...[
+                const Text("Now Playing", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 15),
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator(color: Colors.amber))
+                else if (_movies.isEmpty)
+                  const Center(child: Text("No movies available"))
+                else
+                  ..._movies.map((m) => Padding(padding: const EdgeInsets.only(bottom: 15), child: _buildMovieCard(context, m))).toList(),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -349,8 +373,8 @@ class HomePage extends StatelessWidget {
       decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20)),
       child: Row(
         children: [
-          ClipRRect(borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)), child: Image.network(movie.imgUrl, width: 100, height: 150, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, color: Colors.grey))),
-          Expanded(child: Padding(padding: const EdgeInsets.all(15), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(movie.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis), Text(movie.genre, style: const TextStyle(color: Colors.grey, fontSize: 10)), Row(children: [const Icon(Icons.star, color: Colors.amber, size: 14), Text(" ${movie.rating}", style: const TextStyle(fontSize: 12))]), const Spacer(), ElevatedButton(onPressed: () => onBookNow(movie), style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black, minimumSize: const Size(100, 30)), child: const Text("BOOK NOW", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)))]))),
+          ClipRRect(borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)), child: Image.network(movie.imgUrl, width: 100, height: 150, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, color: Colors.grey, child: const Icon(Icons.movie)))),
+          Expanded(child: Padding(padding: const EdgeInsets.all(15), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(movie.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis), Text(movie.genre, style: const TextStyle(color: Colors.grey, fontSize: 10)), Row(children: [const Icon(Icons.star, color: Colors.amber, size: 14), Text(" ${movie.rating}", style: const TextStyle(fontSize: 12))]), const Spacer(), ElevatedButton(onPressed: () => widget.onBookNow(movie), style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black, minimumSize: const Size(100, 30)), child: const Text("BOOK NOW", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)))]))),
         ],
       ),
     );
@@ -369,7 +393,6 @@ class SeatSelectionPage extends StatefulWidget {
 class _SeatSelectionPageState extends State<SeatSelectionPage> {
   final List<String> _selectedSeats = [];
   final List<String> _bookedSeats = ["B1", "B2", "D4", "D5", "D6"];
-  final double _pricePerSeat = 35000.0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -389,7 +412,7 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
             return InkWell(onTap: isBooked ? null : () { setState(() { if (isSelected) { _selectedSeats.remove(seatId); } else { _selectedSeats.add(seatId); } }); }, child: Container(decoration: BoxDecoration(color: isBooked ? Colors.white10 : (isSelected ? Colors.amber : Colors.deepPurple.shade900), borderRadius: BorderRadius.circular(5))));
           })),
           Padding(padding: const EdgeInsets.all(20), child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [_buildLegend(Colors.deepPurple.shade900, "Available"), _buildLegend(Colors.amber, "Selected"), _buildLegend(Colors.white10, "Booked")])),
-          Container(padding: const EdgeInsets.all(25), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: const BorderRadius.vertical(top: Radius.circular(30))), child: Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("TOTAL PRICE", style: TextStyle(color: Colors.grey, fontSize: 10)), Text("Rp ${(_selectedSeats.length * _pricePerSeat).toInt()}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber))]), Column(crossAxisAlignment: CrossAxisAlignment.end, children: [const Text("SEATS", style: TextStyle(color: Colors.grey, fontSize: 10)), Text(_selectedSeats.isEmpty ? "-" : _selectedSeats.join(", "), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))])]), const SizedBox(height: 20), ElevatedButton(onPressed: _selectedSeats.isEmpty ? null : () { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking Confirmed!'))); widget.onConfirm(); Navigator.pop(context); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 55), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))), child: const Text("CONFIRM SELECTION", style: TextStyle(fontWeight: FontWeight.bold)))]))
+          Container(padding: const EdgeInsets.all(25), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: const BorderRadius.vertical(top: Radius.circular(30))), child: Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("TOTAL PRICE", style: TextStyle(color: Colors.grey, fontSize: 10)), Text("Rp ${(_selectedSeats.length * widget.movie.price).toInt()}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber))]), Column(crossAxisAlignment: CrossAxisAlignment.end, children: [const Text("SEATS", style: TextStyle(color: Colors.grey, fontSize: 10)), Text(_selectedSeats.isEmpty ? "-" : _selectedSeats.join(", "), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))])]), const SizedBox(height: 20), ElevatedButton(onPressed: _selectedSeats.isEmpty ? null : () { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking Confirmed!'))); widget.onConfirm(); Navigator.pop(context); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 55), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))), child: const Text("CONFIRM SELECTION", style: TextStyle(fontWeight: FontWeight.bold)))]))
         ],
       ),
     );
@@ -405,13 +428,89 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  List<MovieData> _filtered = allMovies;
-  void _search(String query) => setState(() => _filtered = allMovies.where((m) => m.title.toLowerCase().contains(query.toLowerCase())).toList());
+  List<MovieData> _results = [];
+  bool _isLoading = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  Future<void> _search(String query) async {
+    if (query.isEmpty) {
+      setState(() => _results = []);
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final response = await http.get(Uri.parse('http://localhost:8081/api/movies/search?q=$query'));
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        setState(() => _results = data.map((m) => MovieData.fromJson(m)).toList());
+      }
+    } catch (e) {
+      debugPrint("Search error: $e");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("SEARCH", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber)), backgroundColor: Colors.transparent),
-      body: Padding(padding: const EdgeInsets.all(20), child: Column(children: [TextField(onChanged: _search, decoration: InputDecoration(hintText: "Search your favorite movies...", prefixIcon: const Icon(Icons.search, color: Colors.amber), filled: true, fillColor: Colors.white.withOpacity(0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none))), const SizedBox(height: 20), Expanded(child: ListView.builder(itemCount: _filtered.length, itemBuilder: (c, i) => ListTile(leading: Image.network(_filtered[i].imgUrl, width: 50, fit: BoxFit.cover), title: Text(_filtered[i].title), subtitle: Text(_filtered[i].genre), trailing: const Icon(Icons.chevron_right))))])),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              onChanged: _search,
+              decoration: InputDecoration(
+                hintText: "Search your favorite movies...",
+                prefixIcon: const Icon(Icons.search, color: Colors.amber),
+                suffixIcon: IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchController.clear(); _search(""); }),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.05),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none)
+              )
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+                : _results.isEmpty && _searchController.text.isNotEmpty
+                  ? const Center(child: Text("No results found"))
+                  : ListView.builder(
+                      itemCount: _results.length,
+                      itemBuilder: (c, i) => _buildSearchResultCard(_results[i])
+                    ),
+            )
+          ],
+        )
+      ),
+    );
+  }
+
+  Widget _buildSearchResultCard(MovieData movie) {
+    return Card(
+      color: Colors.white.withOpacity(0.05),
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(10),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(movie.imgUrl, width: 50, height: 75, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 50, color: Colors.grey, child: const Icon(Icons.movie)))
+        ),
+        title: Text(movie.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(movie.genre, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Row(children: [const Icon(Icons.star, color: Colors.amber, size: 14), Text(" ${movie.rating}", style: const TextStyle(fontSize: 12))]),
+          ],
+        ),
+        onTap: () {
+          // You could navigate to detail or booking here
+        },
+      ),
     );
   }
 }

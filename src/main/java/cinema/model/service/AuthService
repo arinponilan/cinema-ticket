@@ -1,0 +1,46 @@
+package cinema.service;
+
+import cinema.model.User;
+import cinema.model.Customer;
+import cinema.model.Admin;
+import java.util.ArrayList;
+import java.util.List;
+
+public class AuthService {
+    private List<User> users = new ArrayList<>();
+    private static int idCounter = 1;
+
+    public User register(String name, String email, String password, boolean isAdmin) {
+        for (User u : users) {
+            if (u.getEmail().equalsIgnoreCase(email)) {
+                System.out.println("Email sudah terdaftar!");
+                return null;
+            }
+        }
+        User user = isAdmin
+            ? new Admin(idCounter++, name, email, password)
+            : new Customer(idCounter++, name, email, password, 0);
+        users.add(user);
+        user.register();
+        return user;
+    }
+
+    public User login(String email, String password) {
+        for (User u : users) {
+            if (u.getEmail().equalsIgnoreCase(email) && u.getPassword().equals(password)) {
+                u.login();
+                return u;
+            }
+        }
+        System.out.println("Email atau password salah!");
+        return null;
+    }
+
+    public void logout(User user) {
+        user.logout();
+    }
+
+    public boolean changePassword(User user, String newPass) {
+        return user.changePassword(newPass);
+    }
+}

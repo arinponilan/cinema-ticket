@@ -5,6 +5,7 @@ cinema/controller/BookingController.class
 cinema/dto/LoginRequest.class
 cinema/dto/RegisterRequest.class
 cinema/repository/TicketRepository.class
+cinema/util/DataInitializer.class
 cinema/service/BookingService.class
 cinema/dto/BookingRequest.class
 cinema/model/Booking.class

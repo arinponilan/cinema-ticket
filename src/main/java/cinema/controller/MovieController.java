@@ -21,6 +21,11 @@ public class MovieController {
         return movieRepository.findAll();
     }
 
+    @GetMapping("/search")
+    public List<Movie> searchMovies(@RequestParam String q) {
+        return movieRepository.findByTitleContainingIgnoreCase(q);
+    }
+
     @PostMapping
     public ResponseEntity<?> addMovie(@RequestBody Movie movie) {
         Movie saved = movieRepository.save(movie);

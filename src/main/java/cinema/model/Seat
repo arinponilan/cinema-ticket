@@ -1,0 +1,26 @@
+package cinema.model;
+
+public class Seat {
+    private String seatNumber;
+    private boolean isBooked;
+
+    public Seat(String seatNumber) {
+        this.seatNumber = seatNumber;
+        this.isBooked = false;
+    }
+
+    public String getSeatNumber() { return seatNumber; }
+    public boolean isBooked() { return isBooked; }
+
+    public void bookSeat() {
+        isBooked = true;
+        System.out.println("Seat " + seatNumber + " booked.");
+    }
+
+    public void cancelSeat() {
+        isBooked = false;
+        System.out.println("Seat " + seatNumber + " cancelled.");
+    }
+
+    public boolean isAvailable() { return !isBooked; }
+}

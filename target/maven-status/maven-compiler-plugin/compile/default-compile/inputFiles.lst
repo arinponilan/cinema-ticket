@@ -3,6 +3,7 @@
 /Users/irziarinta/cinema-ticket/src/main/java/cinema/repository/MovieRepository.java
 /Users/irziarinta/cinema-ticket/src/main/java/cinema/model/Customer.java
 /Users/irziarinta/cinema-ticket/src/main/java/cinema/model/Seat.java
+/Users/irziarinta/cinema-ticket/src/main/java/cinema/util/DataInitializer.java
 /Users/irziarinta/cinema-ticket/src/main/java/cinema/dto/LoginRequest.java
 /Users/irziarinta/cinema-ticket/src/main/java/cinema/repository/TransactionRepository.java
 /Users/irziarinta/cinema-ticket/src/main/java/cinema/repository/ScheduleRepository.java
