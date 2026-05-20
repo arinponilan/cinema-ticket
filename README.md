@@ -61,4 +61,12 @@ Bagian ini adalah tampilan aplikasi yang digunakan oleh pengguna di handphone at
    ```
 
 ---
-*Dikerjakan oleh Kelompok 4 - IF-48-04*
+
+## 👥 Tim Pengembang (Kelompok 4 - IF-48-04)
+
+- **Shakira Bilqis Sarwahita** (103012400266)
+- **Irzi Arinta Ponilan** (103012400028)
+- **Siti Alqia Tonggiroh** (103012400331)
+- **Tianisa Sianipar** (103012400213)
+- **Naila Amalia** (103012400295)
+- **Nadine Nafeesa Setyawan** (103012400133)
