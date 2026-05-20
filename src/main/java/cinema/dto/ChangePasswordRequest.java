@@ -1,24 +1,26 @@
 package cinema.dto;
 
 public class ChangePasswordRequest {
-    private Integer userId;
-    private String oldPassword;
+    private String email;
+    private String currentPassword;
     private String newPassword;
 
-    public Integer getUserId() {
-        return userId;
+    public ChangePasswordRequest() {}
+
+    public String getEmail() {
+        return email;
     }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public String getOldPassword() {
-        return oldPassword;
+    public String getCurrentPassword() {
+        return currentPassword;
     }
 
-    public void setOldPassword(String oldPassword) {
-        this.oldPassword = oldPassword;
+    public void setCurrentPassword(String currentPassword) {
+        this.currentPassword = currentPassword;
     }
 
     public String getNewPassword() {

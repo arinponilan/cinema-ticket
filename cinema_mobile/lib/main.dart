@@ -158,7 +158,7 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _loading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8081/api/auth/register'),
+        Uri.parse('$_apiBaseUrl/api/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameCtrl.text,
@@ -179,7 +179,9 @@ class _RegisterPageState extends State<RegisterPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -197,20 +199,20 @@ class _RegisterPageState extends State<RegisterPage> {
             const Text("Create Account", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.amber)),
             const Text("Join the premiere cinema club", style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 50),
-            _buildTextField(_nameController, "Full Name", Icons.person),
+            _field(_nameCtrl, "Full Name", Icons.person),
             const SizedBox(height: 20),
-            _buildTextField(_emailController, "Email", Icons.email),
+            _field(_emailCtrl, "Email", Icons.email),
             const SizedBox(height: 20),
-            _buildTextField(_passwordController, "Password", Icons.lock, obscure: true),
+            _field(_passCtrl, "Password", Icons.lock, obscure: true),
             const SizedBox(height: 20),
             SwitchListTile(
               title: const Text("Register as Admin?", style: TextStyle(color: Colors.white)),
-              value: _isAdmin,
-              onChanged: (val) => setState(() => _isAdmin = val),
+              value: _role == 'Admin',
+              onChanged: (val) => setState(() => _role = val ? 'Admin' : 'Customer'),
               activeColor: Colors.amber,
             ),
             const SizedBox(height: 40),
-            _isLoading
+            _loading
                 ? const CircularProgressIndicator(color: Colors.amber)
                 : ElevatedButton(
                     onPressed: _register,
@@ -230,7 +232,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _field(TextEditingController c, String label, IconData icon,
       {bool obscure = false}) {
     return TextField(
-      controller: controller,
+      controller: c,
       obscureText: obscure,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
@@ -267,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8081/api/auth/login'),
+        Uri.parse('$_apiBaseUrl/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': _passCtrl.text}),
       );
@@ -276,10 +278,17 @@ class _LoginPageState extends State<LoginPage> {
         final userData = jsonDecode(response.body);
         String role = userData['role'] ?? 'Customer';
         String name = userData['name'];
+        String loginEmail = userData['email'] ?? email;
         
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainContainer(userName: name, role: role)),
+          MaterialPageRoute(
+            builder: (context) => MainContainer(
+              userName: name,
+              email: loginEmail,
+              role: role,
+            ),
+          ),
         );
       } else {
         _snack('Login Gagal! Email/Password salah.');
@@ -287,7 +296,9 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -337,7 +348,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _field(TextEditingController c, String label, IconData icon,
       {bool obscure = false}) {
     return TextField(
-      controller: controller,
+      controller: c,
       obscureText: obscure,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
