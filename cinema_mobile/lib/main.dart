@@ -209,7 +209,7 @@ class _RegisterPageState extends State<RegisterPage> {
               title: const Text("Register as Admin?", style: TextStyle(color: Colors.white)),
               value: _role == 'Admin',
               onChanged: (val) => setState(() => _role = val ? 'Admin' : 'Customer'),
-              activeColor: Colors.amber,
+              activeThumbColor: Colors.amber,
             ),
             const SizedBox(height: 40),
             _loading
@@ -1073,7 +1073,7 @@ class _TicketCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: Image.network(ticket.imgUrl,
                   width: 60, height: 75, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                       width: 60, height: 75, color: TC.surface,
                       child: Center(child: Text(ticket.movieTitle[0],
                           style: const TextStyle(color: TC.accent,
