@@ -19,4 +19,9 @@ public class SeatController {
     public List<Seat> getAllSeats() {
         return seatRepository.findAll();
     }
+
+    @GetMapping("/schedule/{scheduleId}")
+    public List<Seat> getSeatsBySchedule(@PathVariable int scheduleId) {
+        return seatRepository.findByScheduleScheduleIdOrderBySeatNumberAsc(scheduleId);
+    }
 }

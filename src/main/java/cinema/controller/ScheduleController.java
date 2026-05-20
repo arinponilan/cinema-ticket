@@ -21,8 +21,10 @@ public class ScheduleController {
         return scheduleRepository.findAll();
     }
 
-    @Autowired
-    private cinema.repository.SeatRepository seatRepository;
+    @GetMapping("/movie/{movieId}")
+    public List<Schedule> getSchedulesByMovie(@PathVariable int movieId) {
+        return scheduleRepository.findByMovieIdOrderByDateAscTimeAsc(movieId);
+    }
 
     @Autowired
     private cinema.repository.MovieRepository movieRepository;
@@ -40,18 +42,6 @@ public class ScheduleController {
         
         schedule.setMovie(movie);
         Schedule saved = scheduleRepository.save(schedule);
-
-        // Otomatis generate 10 kursi untuk jadwal ini
-        java.util.List<cinema.model.Seat> seats = new java.util.ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            cinema.model.Seat seat = new cinema.model.Seat();
-            seat.setSeatNumber("A" + i);
-            seat.setBooked(false);
-            seat.setSchedule(saved);
-            seats.add(seat);
-        }
-        seatRepository.saveAll(seats);
-
         return ResponseEntity.ok(saved);
     }
 

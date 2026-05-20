@@ -16,6 +16,8 @@ public class Schedule {
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
+    private String date;
+
     private String time;
 
     @JsonIgnore
@@ -48,6 +50,9 @@ public class Schedule {
 
     public Movie getMovie() { return movie; }
     public void setMovie(Movie movie) { this.movie = movie; }
+
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
 
     public String getTime() { return time; }
     public void setTime(String time) { this.time = time; }
