@@ -1,0 +1,14 @@
+.DS_Store
+
+# Backend build/cache/logs
+backend/target/
+backend/out/
+backend/logs/
+
+# Flutter build/cache
+frontend/.dart_tool/
+frontend/build/
+
+# Local archives
+docs/archive/
+
