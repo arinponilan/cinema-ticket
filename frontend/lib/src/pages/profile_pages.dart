@@ -697,14 +697,20 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () async {
+                        final title = _movieTitle.text;
                         await saveAdminMovie(
-                          title: _movieTitle.text,
+                          title: title,
                           genre: _movieGenre.text,
                           duration: int.tryParse(_movieDuration.text) ?? 0,
                           synopsis: _movieSynopsis.text,
                           price: double.tryParse(_moviePrice.text) ?? 0,
                           imageUrl: _movieImage.text,
                           status: _movieStatus.text,
+                        );
+                        await createNotification(
+                          title: '🎬 New Movie Alert!',
+                          message: '$title is now available on TIXTIX PREMIERE.',
+                          adminOnly: false,
                         );
                         _movieTitle.clear();
                         _movieGenre.clear();
@@ -796,11 +802,22 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () async {
+                        final movieId = int.tryParse(_scheduleMovieId.text) ?? 0;
+                        final movies = await _moviesFuture;
+                        final movieTitle = movies.where((m) => m.id == movieId).firstOrNull?.title ?? 'a movie';
+                        final dateStr = _scheduleDate.text;
+                        final timeStr = _scheduleTime.text;
+
                         await saveAdminSchedule(
-                          movieId: int.tryParse(_scheduleMovieId.text) ?? 0,
-                          date: _scheduleDate.text,
-                          time: _scheduleTime.text,
+                          movieId: movieId,
+                          date: dateStr,
+                          time: timeStr,
                           hall: _scheduleHall.text,
+                        );
+                        await createNotification(
+                          title: '🎫 New Schedule Available!',
+                          message: 'Tickets are now on sale for $movieTitle on $dateStr at $timeStr.',
+                          adminOnly: false,
                         );
                         _scheduleMovieId.clear();
                         _scheduleDate.clear();

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../models/cinema_models.dart';
 import '../services/cinema_api.dart';
@@ -49,22 +49,7 @@ class _MainContainerState extends State<MainContainer> {
 
     try {
       final movies = await fetchMovies();
-      final scheduleFlags = await Future.wait(
-        movies.map((movie) async {
-          try {
-            final schedules = await fetchSchedulesForMovie(movie.id);
-            return schedules.isNotEmpty;
-          } catch (_) {
-            return false;
-          }
-        }),
-      );
-      final visibleMovies = <MovieData>[];
-      for (var i = 0; i < movies.length; i++) {
-        if (scheduleFlags[i]) {
-          visibleMovies.add(movies[i]);
-        }
-      }
+      final visibleMovies = movies;
       List<PromotionItem> promotions = const [];
       try {
         promotions = await fetchPromotions();

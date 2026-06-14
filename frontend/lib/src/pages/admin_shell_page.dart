@@ -1,4 +1,4 @@
-﻿import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../services/cinema_api.dart';
@@ -231,7 +231,7 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                                 const Text('Now Showing', style: TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
                                 const SizedBox(height: 12),
                                 SizedBox(
-                                  height: 210,
+                                  height: 245,
                                   child: ListView.separated(
                                     scrollDirection: Axis.horizontal,
                                     itemCount: nowShowing.isEmpty ? movies.length : nowShowing.length,

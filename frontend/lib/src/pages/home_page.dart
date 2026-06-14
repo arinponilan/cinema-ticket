@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 
@@ -148,7 +148,7 @@ class HomePage extends StatelessWidget {
                 ),
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: 258,
+                    height: 370,
                     child: isLoadingMovies
                         ? const Center(
                             child: CircularProgressIndicator(
@@ -179,7 +179,7 @@ class HomePage extends StatelessWidget {
                                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                                     scrollDirection: Axis.horizontal,
                                     itemCount: nowShowing.length,
-                                    separatorBuilder: (context, index) => const SizedBox(width: 14),
+                                    separatorBuilder: (context, index) => const SizedBox(width: 16),
                                     itemBuilder: (context, index) {
                                       final movie = nowShowing[index];
                                       return _NowShowingCard(
@@ -475,17 +475,17 @@ class _NowShowingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 260,
-      child: cinemaCard(
-        padding: const EdgeInsets.all(12),
+    return GestureDetector(
+      onTap: () => onBookNow(movie),
+      child: SizedBox(
+        width: 160,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: AspectRatio(
-                aspectRatio: 16 / 9,
+                aspectRatio: 2 / 3,
                 child: Image.network(
                   movie.imgUrl,
                   fit: BoxFit.cover,
@@ -500,25 +500,17 @@ class _NowShowingCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    movie.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: CinemaTheme.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _badge('Now Showing', CinemaTheme.accent),
-              ],
+            Text(
+              movie.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: CinemaTheme.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               movie.genre,
               maxLines: 1,
@@ -528,78 +520,27 @@ class _NowShowingCard extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              movie.synopsis.isEmpty ? 'Synopsis not available.' : movie.synopsis,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: CinemaTheme.textSecondary,
-                fontSize: 12,
-                height: 1.35,
-              ),
-            ),
-            const Spacer(),
-            Row(
-              children: [
-                _meta(Icons.schedule_rounded, '${movie.duration} min'),
-                const Spacer(),
-                FilledButton(
-                  onPressed: () => onBookNow(movie),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: CinemaTheme.accent,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  ),
-                  child: const Text('Book'),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => onBookNow(movie),
+                style: FilledButton.styleFrom(
+                  backgroundColor: CinemaTheme.accent,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-              ],
+                child: const Text(
+                  'Book',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
   }
-
-  Widget _badge(String label, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: color.withValues(alpha: 0.28)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
-
-  Widget _meta(IconData icon, String text) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: CinemaTheme.cardAlt,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: CinemaTheme.accent),
-            const SizedBox(width: 6),
-            Text(
-              text,
-              style: const TextStyle(
-                color: CinemaTheme.textPrimary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      );
 }
 
 class _ComingSoonCard extends StatelessWidget {

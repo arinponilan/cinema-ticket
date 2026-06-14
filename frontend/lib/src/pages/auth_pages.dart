@@ -171,9 +171,15 @@ class _LoginPageState extends State<LoginPage> {
   bool _loading = false;
 
   Future<void> _login() async {
-    final email = _emailCtrl.text;
+    String email = _emailCtrl.text.trim();
+    
+    // Auto-map username 'admin' to its database email
+    if (email.toLowerCase() == 'admin') {
+      email = 'admin@gmail.com';
+    }
+
     if (!email.endsWith('@gmail.com')) {
-      _snack('Email harus menggunakan @gmail.com!');
+      _snack('Format salah! Gunakan username admin atau email @gmail.com');
       return;
     }
     setState(() => _loading = true);
@@ -192,21 +198,24 @@ class _LoginPageState extends State<LoginPage> {
         final loginEmail = (userData['email'] ?? email).toString();
         final userId = MovieData.intValue(userData['userId']);
 
+        // ENFORCE: Only admin@gmail.com can access the Admin panel
+        final effectiveRole = (loginEmail.toLowerCase() == 'admin@gmail.com') ? 'admin' : 'customer';
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => role.toLowerCase() == 'admin'
+            builder: (context) => effectiveRole == 'admin'
                 ? AdminShellPage(
                     userId: userId,
                     userName: name,
                     email: loginEmail,
-                    role: role,
+                    role: effectiveRole,
                   )
                 : MainContainer(
                     userId: userId,
                     userName: name,
                     email: loginEmail,
-                    role: role,
+                    role: effectiveRole,
                   ),
           ),
         );
@@ -252,7 +261,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(color: Colors.grey, fontSize: 10),
               ),
               const SizedBox(height: 50),
-              _field(_emailCtrl, "Email", Icons.email),
+              _field(_emailCtrl, "Email / Username", Icons.email),
               const SizedBox(height: 20),
               _field(_passCtrl, "Password", Icons.lock, obscure: true),
               const SizedBox(height: 40),

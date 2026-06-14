@@ -48,4 +48,18 @@ public class MovieController {
             }
         }
     }
+
+    @GetMapping("/fix-images")
+    public ResponseEntity<?> fixImages() {
+        List<Movie> movies = movieRepository.findAll();
+        int updated = 0;
+        for (Movie movie : movies) {
+            String encodedTitle = movie.getTitle().replace(" ", "+");
+            String newUrl = "https://placehold.co/600x900/1a1a1a/FFFFFF/png?text=" + encodedTitle;
+            movie.setImageUrl(newUrl);
+            movieRepository.save(movie);
+            updated++;
+        }
+        return ResponseEntity.ok("Fixed " + updated + " movies with placehold.co images");
+    }
 }
