@@ -1,6 +1,6 @@
 # 🎬 Cinema Ticket Booking System
 
-## Sistem pemesanan tiket bioskop berbasis mobile dan backend REST API menggunakan Flutter, Spring Boot, dan MySQL.
+## Sistem pemesanan tiket bioskop berbasis mobile dan backend REST API menggunakan Flutter, Spring Boot, dan PostgreSQL/Supabase.
 
 # 👥 Anggota Kelompok
 
@@ -13,7 +13,7 @@
 
 # 🎬 Cinema Ticket Booking System
 
-Aplikasi pemesanan tiket bioskop berbasis mobile menggunakan Flutter, Spring Boot, dan MySQL.
+Aplikasi pemesanan tiket bioskop berbasis mobile menggunakan Flutter, Spring Boot, dan PostgreSQL/Supabase.
 
 ---
 
@@ -33,8 +33,8 @@ Aplikasi pemesanan tiket bioskop berbasis mobile menggunakan Flutter, Spring Boo
 
 ## Database
 
-- MySQL
-- phpMyAdmin
+- PostgreSQL
+- Supabase
 
 ---
 
@@ -63,7 +63,7 @@ Pastikan perangkat sudah terinstall:
 - Java JDK 21
 - Maven
 - Flutter SDK
-- MySQL
+- PostgreSQL atau Supabase
 - Git
 
 Cek versi Java:
@@ -86,9 +86,9 @@ flutter doctor
 
 ---
 
-# 3. Buat Database MySQL
+# 3. Buat Database PostgreSQL/Supabase
 
-Buka phpMyAdmin atau MySQL Workbench lalu buat database:
+Buat database PostgreSQL lokal atau gunakan project Supabase.
 
 ```sql
 CREATE DATABASE cinema_db;
@@ -98,27 +98,37 @@ CREATE DATABASE cinema_db;
 
 # 4. Konfigurasi Database Spring Boot
 
-Buka file:
+Buat file `.env` lokal dari contoh yang sudah disediakan:
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Lalu isi nilai koneksi database di `backend/.env`:
+
+```properties
+DATABASE_URL=jdbc:postgresql://localhost:5432/cinema_db
+DB_USERNAME=nama_user_postgres_lokal
+DB_PASSWORD=password_postgres_lokal
+```
+
+Catatan untuk macOS/Homebrew PostgreSQL: user lokal sering sama dengan username macOS, misalnya `kia`, bukan `postgres`. Jika muncul error `FATAL: role "postgres" does not exist`, ganti `DB_USERNAME` di `backend/.env` ke user PostgreSQL yang tersedia.
+
+Jika menggunakan Supabase pooler, isi `.env` seperti ini:
+
+```properties
+DATABASE_URL=jdbc:postgresql://aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+DB_USERNAME=postgres.PROJECT_REF
+DB_PASSWORD=PASSWORD_SUPABASE
+```
+
+Spring Boot akan membaca `backend/.env` otomatis saat backend dijalankan dari folder `backend`, jadi tidak perlu menjalankan `source .env`.
+
+Konfigurasi fallback tetap tersedia di:
 
 ```text
-src/main/resources/application.properties
-```
-
-Pastikan konfigurasi database sesuai:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/cinema_db
-spring.datasource.username=root
-spring.datasource.password=
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-```
-
-Jika MySQL menggunakan password, isi pada:
-
-```properties
-spring.datasource.password=PASSWORD_MYSQL
+backend/src/main/resources/application.properties
 ```
 
 ---
@@ -128,7 +138,8 @@ spring.datasource.password=PASSWORD_MYSQL
 Jalankan backend menggunakan command:
 
 ```bash
-mvn spring-boot:run
+cd backend
+./mvnw spring-boot:run
 ```
 
 Jika berhasil, backend berjalan di:
