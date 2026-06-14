@@ -21,11 +21,14 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passCtrl = TextEditingController();
   String _role = 'Customer';
   bool _loading = false;
+  bool _showPassword = false;
 
   Future<void> _register() async {
     final email = _emailCtrl.text;
     if (_role == 'Admin' && email != 'admin@gmail.com') {
-      _snack('Akses Ditolak! Hanya akun resmi yang bisa mendaftar sebagai Admin.');
+      _snack(
+        'Akses Ditolak! Hanya akun resmi yang bisa mendaftar sebagai Admin.',
+      );
       return;
     }
     if (!email.endsWith('@gmail.com')) {
@@ -94,7 +97,22 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 20),
             _field(_emailCtrl, "Email", Icons.email),
             const SizedBox(height: 20),
-            _field(_passCtrl, "Password", Icons.lock, obscure: true),
+            _field(
+              _passCtrl,
+              "Password",
+              Icons.lock,
+              obscure: !_showPassword,
+              suffixIcon: IconButton(
+                tooltip: _showPassword ? 'Hide password' : 'Show password',
+                onPressed: () => setState(() => _showPassword = !_showPassword),
+                icon: Icon(
+                  _showPassword
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
+                  color: Colors.amber,
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             SwitchListTile(
               title: const Text(
@@ -139,6 +157,7 @@ class _RegisterPageState extends State<RegisterPage> {
     String label,
     IconData icon, {
     bool obscure = false,
+    Widget? suffixIcon,
   }) {
     return TextField(
       controller: c,
@@ -147,6 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.amber),
+        suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
@@ -169,17 +189,24 @@ class _LoginPageState extends State<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _loading = false;
+  bool _showPassword = false;
 
   Future<void> _login() async {
     String email = _emailCtrl.text.trim();
-    
+
     // Auto-map username 'admin' to its database email
     if (email.toLowerCase() == 'admin') {
       email = 'admin@gmail.com';
     }
 
-    if (!email.endsWith('@gmail.com')) {
-      _snack('Format salah! Gunakan username admin atau email @gmail.com');
+    if (email.isEmpty) {
+      _snack('Masukkan email atau username');
+      return;
+    }
+
+    final isEmail = email.contains('@');
+    if (isEmail && !email.endsWith('@gmail.com')) {
+      _snack('Format salah! Gunakan email @gmail.com');
       return;
     }
     setState(() => _loading = true);
@@ -193,13 +220,14 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       if (response.statusCode == 200) {
         final userData = jsonDecode(response.body);
-        final role = (userData['role'] ?? 'Customer').toString();
         final name = (userData['name'] ?? '').toString();
         final loginEmail = (userData['email'] ?? email).toString();
         final userId = MovieData.intValue(userData['userId']);
 
         // ENFORCE: Only admin@gmail.com can access the Admin panel
-        final effectiveRole = (loginEmail.toLowerCase() == 'admin@gmail.com') ? 'admin' : 'customer';
+        final effectiveRole = (loginEmail.toLowerCase() == 'admin@gmail.com')
+            ? 'admin'
+            : 'customer';
 
         Navigator.pushReplacement(
           context,
@@ -263,7 +291,23 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 50),
               _field(_emailCtrl, "Email / Username", Icons.email),
               const SizedBox(height: 20),
-              _field(_passCtrl, "Password", Icons.lock, obscure: true),
+              _field(
+                _passCtrl,
+                "Password",
+                Icons.lock,
+                obscure: !_showPassword,
+                suffixIcon: IconButton(
+                  tooltip: _showPassword ? 'Hide password' : 'Show password',
+                  onPressed: () =>
+                      setState(() => _showPassword = !_showPassword),
+                  icon: Icon(
+                    _showPassword
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
+                    color: Colors.amber,
+                  ),
+                ),
+              ),
               const SizedBox(height: 40),
               _loading
                   ? const CircularProgressIndicator(color: Colors.amber)
@@ -308,6 +352,7 @@ class _LoginPageState extends State<LoginPage> {
     String label,
     IconData icon, {
     bool obscure = false,
+    Widget? suffixIcon,
   }) {
     return TextField(
       controller: c,
@@ -316,6 +361,7 @@ class _LoginPageState extends State<LoginPage> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.amber),
+        suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(

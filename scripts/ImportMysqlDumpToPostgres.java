@@ -21,8 +21,7 @@ public class ImportMysqlDumpToPostgres {
             "booking_seats",
             "tickets",
             "transactions",
-            "advertisements",
-            "notifications"
+            "advertisements"
     };
 
     public static void main(String[] args) throws Exception {
@@ -46,7 +45,6 @@ public class ImportMysqlDumpToPostgres {
                 resetSequence(statement, "advertisements", "id");
                 resetSequence(statement, "bookings", "id");
                 resetSequence(statement, "movies", "id");
-                resetSequence(statement, "notifications", "id");
                 resetSequence(statement, "schedules", "schedule_id");
                 resetSequence(statement, "seats", "id");
                 resetSequence(statement, "tickets", "ticket_id");

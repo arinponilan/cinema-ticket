@@ -31,7 +31,8 @@ class MovieData {
       duration: intValue(json['duration']),
       synopsis: (json['synopsis'] ?? '').toString(),
       price: doubleValue(json['price']),
-      status: (json['status'] ?? json['movieStatus'] ?? 'Now Showing').toString(),
+      status: (json['status'] ?? json['movieStatus'] ?? 'Now Showing')
+          .toString(),
     );
   }
 
@@ -86,7 +87,9 @@ class ScheduleSlot {
 
   factory ScheduleSlot.fromJson(Map<String, dynamic> json) {
     return ScheduleSlot(
-      id: MovieData.intValue(json['scheduleId'] ?? json['schedule_id'] ?? json['id']),
+      id: MovieData.intValue(
+        json['scheduleId'] ?? json['schedule_id'] ?? json['id'],
+      ),
       time: _formatTime((json['time'] ?? '').toString()),
       date: (json['date'] ?? '').toString(),
       hall: (json['hall'] ?? json['studio'] ?? 'Hall 1').toString(),
@@ -153,7 +156,8 @@ class BookingHistoryItem {
   });
 
   factory BookingHistoryItem.fromJson(Map<String, dynamic> json) {
-    final seats = (json['seatNumbers'] as List?)
+    final seats =
+        (json['seatNumbers'] as List?)
             ?.whereType<dynamic>()
             .map((e) => e.toString())
             .toList() ??
@@ -173,10 +177,14 @@ class ProfileSummary {
   final int moviesWatched;
   final List<BookingHistoryItem> transactionHistory;
 
-  ProfileSummary({required this.moviesWatched, required this.transactionHistory});
+  ProfileSummary({
+    required this.moviesWatched,
+    required this.transactionHistory,
+  });
 
   factory ProfileSummary.fromJson(Map<String, dynamic> json) {
-    final history = (json['transactionHistory'] as List?)
+    final history =
+        (json['transactionHistory'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map(BookingHistoryItem.fromJson)
             .toList() ??
@@ -188,34 +196,6 @@ class ProfileSummary {
   }
 }
 
-class NotificationItem {
-  final int id;
-  final String title;
-  final String message;
-  bool readStatus;
-  final bool adminOnly;
-  final DateTime? createdAt;
-
-  NotificationItem({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.readStatus,
-    required this.adminOnly,
-    this.createdAt,
-  });
-
-  factory NotificationItem.fromJson(Map<String, dynamic> json) {
-    return NotificationItem(
-      id: MovieData.intValue(json['id']),
-      title: (json['title'] ?? '').toString(),
-      message: (json['message'] ?? '').toString(),
-      readStatus: json['readStatus'] == true,
-      adminOnly: json['adminOnly'] == true,
-      createdAt: DateTime.tryParse((json['createdAt'] ?? '').toString()),
-    );
-  }
-}
 class PromotionItem {
   final int id;
   final String title;
@@ -237,7 +217,9 @@ class PromotionItem {
     return PromotionItem(
       id: MovieData.intValue(json['id']),
       title: (json['title'] ?? '').toString(),
-      imageUrl: (json['imageUrl'] ?? json['image_url'] ?? MovieData.fallbackImageUrl).toString(),
+      imageUrl:
+          (json['imageUrl'] ?? json['image_url'] ?? MovieData.fallbackImageUrl)
+              .toString(),
       linkUrl: (json['linkUrl'] ?? json['link_url'] ?? '').toString(),
       active: json['active'] != false,
       sortOrder: MovieData.intValue(json['sortOrder'] ?? json['sort_order']),

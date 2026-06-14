@@ -15,7 +15,6 @@ class HomePage extends StatelessWidget {
   final String? movieError;
   final VoidCallback onRetryMovies;
   final Function(MovieData) onBookNow;
-  final VoidCallback onOpenNotifications;
 
   const HomePage({
     super.key,
@@ -28,7 +27,6 @@ class HomePage extends StatelessWidget {
     required this.movieError,
     required this.onRetryMovies,
     required this.onBookNow,
-    required this.onOpenNotifications,
   });
 
   @override
@@ -64,7 +62,9 @@ class HomePage extends StatelessWidget {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: CinemaTheme.accent.withValues(alpha: 0.24),
+                                color: CinemaTheme.accent.withValues(
+                                  alpha: 0.24,
+                                ),
                                 blurRadius: 18,
                                 offset: const Offset(0, 8),
                               ),
@@ -101,13 +101,6 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: onOpenNotifications,
-                          icon: const Icon(
-                            Icons.notifications_none_rounded,
-                            color: CinemaTheme.textPrimary,
                           ),
                         ),
                       ],
@@ -156,38 +149,40 @@ class HomePage extends StatelessWidget {
                             ),
                           )
                         : movieError != null
-                            ? Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: _emptyCard(
-                                  icon: Icons.wifi_off_rounded,
-                                  title: 'Failed to load movies',
-                                  message: 'Check the backend connection.',
-                                  actionLabel: 'Retry',
-                                  onAction: onRetryMovies,
-                                ),
-                              )
-                            : nowShowing.isEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: _emptyCard(
-                                      icon: Icons.movie_outlined,
-                                      title: 'No now showing films',
-                                      message: 'Wait for admin to publish the schedule.',
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: nowShowing.length,
-                                    separatorBuilder: (context, index) => const SizedBox(width: 16),
-                                    itemBuilder: (context, index) {
-                                      final movie = nowShowing[index];
-                                      return _NowShowingCard(
-                                        movie: movie,
-                                        onBookNow: onBookNow,
-                                      );
-                                    },
-                                  ),
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _emptyCard(
+                              icon: Icons.wifi_off_rounded,
+                              title: 'Failed to load movies',
+                              message: 'Check the backend connection.',
+                              actionLabel: 'Retry',
+                              onAction: onRetryMovies,
+                            ),
+                          )
+                        : nowShowing.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _emptyCard(
+                              icon: Icons.movie_outlined,
+                              title: 'No now showing films',
+                              message:
+                                  'Wait for admin to publish the schedule.',
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: nowShowing.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 16),
+                            itemBuilder: (context, index) {
+                              final movie = nowShowing[index];
+                              return _NowShowingCard(
+                                movie: movie,
+                                onBookNow: onBookNow,
+                              );
+                            },
+                          ),
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -221,25 +216,25 @@ class HomePage extends StatelessWidget {
                   sliver: isLoadingMovies
                       ? const SliverToBoxAdapter(child: SizedBox.shrink())
                       : comingSoon.isEmpty
-                          ? SliverToBoxAdapter(
-                              child: _emptyCard(
-                                icon: Icons.upcoming_rounded,
-                                title: 'No coming soon films',
-                                message: 'New releases will appear here.',
-                              ),
-                            )
-                          : SliverList(
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                                  final movie = comingSoon[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: _ComingSoonCard(movie: movie),
-                                  );
-                                },
-                                childCount: comingSoon.length,
-                              ),
-                            ),
+                      ? SliverToBoxAdapter(
+                          child: _emptyCard(
+                            icon: Icons.upcoming_rounded,
+                            title: 'No coming soon films',
+                            message: 'New releases will appear here.',
+                          ),
+                        )
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final movie = comingSoon[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _ComingSoonCard(movie: movie),
+                            );
+                          }, childCount: comingSoon.length),
+                        ),
                 ),
               ],
             ),
@@ -450,7 +445,9 @@ class _PromotionBannerState extends State<_PromotionBanner> {
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: CinemaTheme.accent.withValues(alpha: 0.22)),
+                border: Border.all(
+                  color: CinemaTheme.accent.withValues(alpha: 0.22),
+                ),
               ),
               child: Text(
                 '${_index + 1}/${promos.length}',
@@ -467,6 +464,7 @@ class _PromotionBannerState extends State<_PromotionBanner> {
     );
   }
 }
+
 class _NowShowingCard extends StatelessWidget {
   final MovieData movie;
   final ValueChanged<MovieData> onBookNow;
@@ -605,7 +603,9 @@ class _ComingSoonCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  movie.synopsis.isEmpty ? 'Synopsis not available.' : movie.synopsis,
+                  movie.synopsis.isEmpty
+                      ? 'Synopsis not available.'
+                      : movie.synopsis,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -625,43 +625,38 @@ class _ComingSoonCard extends StatelessWidget {
   }
 
   Widget _badge(String label, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: color.withValues(alpha: 0.28)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: color.withValues(alpha: 0.28)),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
+    ),
+  );
 
   Widget _meta(IconData icon, String text) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: CinemaTheme.cardAlt,
-          borderRadius: BorderRadius.circular(12),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+    decoration: BoxDecoration(
+      color: CinemaTheme.cardAlt,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: CinemaTheme.accent),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: const TextStyle(
+            color: CinemaTheme.textPrimary,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: CinemaTheme.accent),
-            const SizedBox(width: 6),
-            Text(
-              text,
-              style: const TextStyle(
-                color: CinemaTheme.textPrimary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }
-

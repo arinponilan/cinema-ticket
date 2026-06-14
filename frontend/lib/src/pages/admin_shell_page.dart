@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../services/cinema_api.dart';
@@ -40,22 +41,80 @@ class _AdminShellPageState extends State<AdminShellPage> {
     );
   }
 
+  void _showTopSnack(String message, {bool isError = false}) {
+    final overlay = Overlay.of(context);
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 16,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 520),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isError ? CinemaTheme.danger : CinemaTheme.card,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isError ? CinemaTheme.danger : CinemaTheme.accent,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.32),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isError ? Colors.white : CinemaTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 2), entry.remove);
+  }
+
   Future<void> _pickAndUpload(TextEditingController target) async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: false);
-    if (result == null || result.files.single.path == null) return;
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result == null) return;
 
     try {
-      final url = await uploadImageFile(result.files.single.path!);
+      final file = result.files.single;
+      final url = kIsWeb
+          ? await uploadImageBytes(
+              filename: file.name,
+              bytes: file.bytes ?? Uint8List(0),
+            )
+          : await uploadImageFile(
+              file.path ?? (throw Exception('Selected file path is empty')),
+            );
       if (!mounted) return;
       setState(() => target.text = url);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image uploaded successfully')),
-      );
+      _showTopSnack('Image uploaded successfully');
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $error')),
-      );
+      _showTopSnack('Upload failed: $error', isError: true);
     }
   }
 
@@ -74,14 +133,18 @@ class _AdminShellPageState extends State<AdminShellPage> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _AdminMovieHub(refreshToken: _adminDataVersion, onAddMovie: () async => _showPopup(_MoviePopup(onPickImage: _pickAndUpload)), onDataChanged: _refreshAdminData),
+      _AdminMovieHub(
+        refreshToken: _adminDataVersion,
+        onAddMovie: () async =>
+            _showPopup(_MoviePopup(onPickImage: _pickAndUpload)),
+        onDataChanged: _refreshAdminData,
+      ),
       _AdminScheduleHub(
         refreshToken: _adminDataVersion,
         onDataChanged: _refreshAdminData,
       ),
       _AdminAdsNotifHub(
         onAddAds: () => _showPopup(_AdsPopup(onPickImage: _pickAndUpload)),
-        onAddNotif: () => _showPopup(const _NotifPopup()),
       ),
       _AdminProfileHub(
         userName: widget.userName,
@@ -96,16 +159,34 @@ class _AdminShellPageState extends State<AdminShellPage> {
         data: NavigationBarThemeData(
           backgroundColor: CinemaTheme.panel,
           indicatorColor: CinemaTheme.accent.withValues(alpha: 0.16),
-          labelTextStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+          labelTextStyle: const WidgetStatePropertyAll(
+            TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+          ),
         ),
         child: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
           destinations: const [
-            NavigationDestination(icon: Icon(Icons.movie_creation_outlined), selectedIcon: Icon(Icons.movie_creation_rounded), label: 'Movie'),
-            NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month_rounded), label: 'Schedule'),
-            NavigationDestination(icon: Icon(Icons.campaign_outlined), selectedIcon: Icon(Icons.campaign_rounded), label: 'Ads'),
-            NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'Profile'),
+            NavigationDestination(
+              icon: Icon(Icons.movie_creation_outlined),
+              selectedIcon: Icon(Icons.movie_creation_rounded),
+              label: 'Movie',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month_rounded),
+              label: 'Schedule',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.campaign_outlined),
+              selectedIcon: Icon(Icons.campaign_rounded),
+              label: 'Ads',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
           ],
         ),
       ),
@@ -117,7 +198,11 @@ class _AdminMovieHub extends StatefulWidget {
   final int refreshToken;
   final Future<void> Function() onAddMovie;
   final VoidCallback onDataChanged;
-  const _AdminMovieHub({required this.refreshToken, required this.onAddMovie, required this.onDataChanged});
+  const _AdminMovieHub({
+    required this.refreshToken,
+    required this.onAddMovie,
+    required this.onDataChanged,
+  });
 
   @override
   State<_AdminMovieHub> createState() => _AdminMovieHubState();
@@ -125,7 +210,6 @@ class _AdminMovieHub extends StatefulWidget {
 
 class _AdminMovieHubState extends State<_AdminMovieHub> {
   late Future<List<MovieData>> _moviesFuture;
-
 
   @override
   void initState() {
@@ -138,7 +222,6 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
   void didUpdateWidget(covariant _AdminMovieHub oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.refreshToken != widget.refreshToken) {
-  
       _moviesFuture = fetchAdminMovies();
     }
   }
@@ -177,20 +260,38 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                             color: CinemaTheme.accent.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.add_rounded, color: CinemaTheme.accent),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: CinemaTheme.accent,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         const Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Add Movie', style: TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                              Text(
+                                'Add Movie',
+                                style: TextStyle(
+                                  color: CinemaTheme.textPrimary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('Open popup to create a new movie', style: TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                              Text(
+                                'Open popup to create a new movie',
+                                style: TextStyle(
+                                  color: CinemaTheme.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: CinemaTheme.textSecondary),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: CinemaTheme.textSecondary,
+                        ),
                       ],
                     ),
                   ),
@@ -201,24 +302,43 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                     future: _moviesFuture,
                     builder: (context, snap) {
                       if (snap.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: CinemaTheme.accent,
+                          ),
+                        );
                       }
                       if (snap.hasError) {
                         return Center(
                           child: Text(
                             'Failed to load movies',
-                            style: const TextStyle(color: CinemaTheme.textSecondary),
+                            style: const TextStyle(
+                              color: CinemaTheme.textSecondary,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         );
                       }
                       final movies = snap.data ?? const <MovieData>[];
-                      final nowShowing = movies.where((movie) => movie.status.toLowerCase() == 'now showing').toList();
-                      final comingSoon = movies.where((movie) => movie.status.toLowerCase() == 'coming soon').toList();
+                      final nowShowing = movies
+                          .where(
+                            (movie) =>
+                                movie.status.toLowerCase() == 'now showing',
+                          )
+                          .toList();
+                      final comingSoon = movies
+                          .where(
+                            (movie) =>
+                                movie.status.toLowerCase() == 'coming soon',
+                          )
+                          .toList();
 
                       if (movies.isEmpty) {
                         return const Center(
-                          child: Text('No movies found', style: TextStyle(color: CinemaTheme.textSecondary)),
+                          child: Text(
+                            'No movies found',
+                            style: TextStyle(color: CinemaTheme.textSecondary),
+                          ),
                         );
                       }
 
@@ -228,16 +348,27 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Now Showing', style: TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                                const Text(
+                                  'Now Showing',
+                                  style: TextStyle(
+                                    color: CinemaTheme.textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                                 const SizedBox(height: 12),
                                 SizedBox(
                                   height: 245,
                                   child: ListView.separated(
                                     scrollDirection: Axis.horizontal,
-                                    itemCount: nowShowing.isEmpty ? movies.length : nowShowing.length,
-                                    separatorBuilder: (context, index) => const SizedBox(width: 12),
+                                    itemCount: nowShowing.isEmpty
+                                        ? movies.length
+                                        : nowShowing.length,
+                                    separatorBuilder: (context, index) =>
+                                        const SizedBox(width: 12),
                                     itemBuilder: (context, index) {
-                                      final movie = nowShowing.isEmpty ? movies[index] : nowShowing[index];
+                                      final movie = nowShowing.isEmpty
+                                          ? movies[index]
+                                          : nowShowing[index];
                                       return _AdminMovieCard(
                                         movie: movie,
                                         onDelete: () async {
@@ -247,8 +378,14 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                                             _refresh();
                                           } catch (error) {
                                             if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Delete movie failed: $error')),
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Delete movie failed: $error',
+                                                ),
+                                              ),
                                             );
                                           }
                                         },
@@ -264,28 +401,46 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Coming Soon', style: TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                                const Text(
+                                  'Coming Soon',
+                                  style: TextStyle(
+                                    color: CinemaTheme.textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                                 const SizedBox(height: 12),
                                 SizedBox(
                                   height: 320,
                                   child: ListView.separated(
-                                    itemCount: comingSoon.isEmpty ? 0 : comingSoon.length,
-                                    separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                    itemBuilder: (context, index) => _AdminMovieListTile(
-                                      movie: comingSoon[index],
-                                      onDelete: () async {
-                                        try {
-                                          await deleteAdminMovie(comingSoon[index].id);
-                                          widget.onDataChanged();
-                                          _refresh();
-                                        } catch (error) {
-                                          if (!context.mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Delete movie failed: $error')),
-                                          );
-                                        }
-                                      },
-                                    ),
+                                    itemCount: comingSoon.isEmpty
+                                        ? 0
+                                        : comingSoon.length,
+                                    separatorBuilder: (context, index) =>
+                                        const SizedBox(height: 12),
+                                    itemBuilder: (context, index) =>
+                                        _AdminMovieListTile(
+                                          movie: comingSoon[index],
+                                          onDelete: () async {
+                                            try {
+                                              await deleteAdminMovie(
+                                                comingSoon[index].id,
+                                              );
+                                              widget.onDataChanged();
+                                              _refresh();
+                                            } catch (error) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Delete movie failed: $error',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
                                   ),
                                 ),
                               ],
@@ -304,7 +459,6 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
     );
   }
 }
-
 
 class _AdminMovieCard extends StatelessWidget {
   final MovieData movie;
@@ -334,7 +488,10 @@ class _AdminMovieCard extends StatelessWidget {
                 height: 140,
                 color: CinemaTheme.cardAlt,
                 alignment: Alignment.center,
-                child: const Icon(Icons.image_not_supported_rounded, color: CinemaTheme.textSecondary),
+                child: const Icon(
+                  Icons.image_not_supported_rounded,
+                  color: CinemaTheme.textSecondary,
+                ),
               ),
             ),
           ),
@@ -343,16 +500,40 @@ class _AdminMovieCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(movie.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800, fontSize: 13)),
+                Text(
+                  movie.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: CinemaTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(movie.genre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 11)),
+                Text(
+                  movie.genre,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: CinemaTheme.textSecondary,
+                    fontSize: 11,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     onPressed: onDelete,
-                    icon: const Icon(Icons.delete_outline_rounded, color: CinemaTheme.danger, size: 18),
-                    constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: CinemaTheme.danger,
+                      size: 18,
+                    ),
+                    constraints: const BoxConstraints.tightFor(
+                      width: 32,
+                      height: 32,
+                    ),
                     padding: EdgeInsets.zero,
                   ),
                 ),
@@ -394,7 +575,11 @@ class _AdminMovieListTile extends StatelessWidget {
                 height: 72,
                 color: CinemaTheme.card,
                 alignment: Alignment.center,
-                child: const Icon(Icons.image_not_supported_rounded, color: CinemaTheme.textSecondary, size: 18),
+                child: const Icon(
+                  Icons.image_not_supported_rounded,
+                  color: CinemaTheme.textSecondary,
+                  size: 18,
+                ),
               ),
             ),
           ),
@@ -404,17 +589,43 @@ class _AdminMovieListTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(movie.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                Text(
+                  movie.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: CinemaTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(movie.genre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                Text(
+                  movie.genre,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: CinemaTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(movie.status, style: const TextStyle(color: CinemaTheme.accent, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text(
+                  movie.status,
+                  style: const TextStyle(
+                    color: CinemaTheme.accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),
           IconButton(
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline_rounded, color: CinemaTheme.danger),
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: CinemaTheme.danger,
+            ),
           ),
         ],
       ),
@@ -425,7 +636,10 @@ class _AdminMovieListTile extends StatelessWidget {
 class _AdminScheduleHub extends StatefulWidget {
   final int refreshToken;
   final VoidCallback onDataChanged;
-  const _AdminScheduleHub({required this.refreshToken, required this.onDataChanged});
+  const _AdminScheduleHub({
+    required this.refreshToken,
+    required this.onDataChanged,
+  });
 
   @override
   State<_AdminScheduleHub> createState() => _AdminScheduleHubState();
@@ -452,7 +666,6 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
   void didUpdateWidget(covariant _AdminScheduleHub oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.refreshToken != widget.refreshToken) {
-  
       _moviesFuture = fetchAdminMovies();
       _schedulesFuture = fetchAdminSchedules();
     }
@@ -480,9 +693,9 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
       _refresh();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Delete schedule failed: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Delete schedule failed: $error')));
     }
   }
 
@@ -496,7 +709,10 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                cinemaSectionTitle('Schedule', subtitle: 'Assign movies to halls and time slots'),
+                cinemaSectionTitle(
+                  'Schedule',
+                  subtitle: 'Assign movies to halls and time slots',
+                ),
                 const SizedBox(height: 16),
                 cinemaCard(
                   child: FutureBuilder<List<MovieData>>(
@@ -508,21 +724,41 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                           DropdownButtonFormField<MovieData>(
                             key: ValueKey(widget.refreshToken),
                             initialValue: _selectedMovie,
-                            decoration: const InputDecoration(labelText: 'Select movie'),
+                            decoration: const InputDecoration(
+                              labelText: 'Select movie',
+                            ),
                             items: movies
-                                .map((movie) => DropdownMenuItem<MovieData>(
-                                      value: movie,
-                                      child: Text(movie.title),
-                                    ))
+                                .map(
+                                  (movie) => DropdownMenuItem<MovieData>(
+                                    value: movie,
+                                    child: Text(movie.title),
+                                  ),
+                                )
                                 .toList(),
-                            onChanged: (movie) => setState(() => _selectedMovie = movie),
+                            onChanged: (movie) =>
+                                setState(() => _selectedMovie = movie),
                           ),
                           const SizedBox(height: 12),
-                          TextField(controller: _date, decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)')),
+                          TextField(
+                            controller: _date,
+                            decoration: const InputDecoration(
+                              labelText: 'Date (YYYY-MM-DD)',
+                            ),
+                          ),
                           const SizedBox(height: 12),
-                          TextField(controller: _time, decoration: const InputDecoration(labelText: 'Time (HH:MM)')),
+                          TextField(
+                            controller: _time,
+                            decoration: const InputDecoration(
+                              labelText: 'Time (HH:MM)',
+                            ),
+                          ),
                           const SizedBox(height: 12),
-                          TextField(controller: _hall, decoration: const InputDecoration(labelText: 'Hall / Studio')),
+                          TextField(
+                            controller: _hall,
+                            decoration: const InputDecoration(
+                              labelText: 'Hall / Studio',
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
@@ -530,7 +766,9 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                               onPressed: () async {
                                 if (_selectedMovie == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Please select a movie')),
+                                    const SnackBar(
+                                      content: Text('Please select a movie'),
+                                    ),
                                   );
                                   return;
                                 }
@@ -550,11 +788,18 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                                 } catch (error) {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Save schedule failed: $error')),
+                                    SnackBar(
+                                      content: Text(
+                                        'Save schedule failed: $error',
+                                      ),
+                                    ),
                                   );
                                 }
                               },
-                              style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: CinemaTheme.accent,
+                                foregroundColor: Colors.black,
+                              ),
                               child: const Text('Save Schedule'),
                             ),
                           ),
@@ -569,18 +814,33 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                     future: _schedulesFuture,
                     builder: (context, snap) {
                       if (snap.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: CinemaTheme.accent,
+                          ),
+                        );
                       }
                       if (snap.hasError) {
-                        return const Center(child: Text('Failed to load schedules', style: TextStyle(color: CinemaTheme.textSecondary)));
+                        return const Center(
+                          child: Text(
+                            'Failed to load schedules',
+                            style: TextStyle(color: CinemaTheme.textSecondary),
+                          ),
+                        );
                       }
                       final schedules = snap.data ?? const <ScheduleSlot>[];
                       if (schedules.isEmpty) {
-                        return const Center(child: Text('No schedules found', style: TextStyle(color: CinemaTheme.textSecondary)));
+                        return const Center(
+                          child: Text(
+                            'No schedules found',
+                            style: TextStyle(color: CinemaTheme.textSecondary),
+                          ),
+                        );
                       }
                       return ListView.separated(
                         itemCount: schedules.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final schedule = schedules[index];
                           return cinemaCard(
@@ -588,19 +848,40 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text('Schedule #${schedule.id}', style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                                      Text(
+                                        'Schedule #${schedule.id}',
+                                        style: const TextStyle(
+                                          color: CinemaTheme.textPrimary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
-                                      Text('${schedule.date} • ${schedule.time}', style: const TextStyle(color: CinemaTheme.textSecondary)),
+                                      Text(
+                                        '${schedule.date} • ${schedule.time}',
+                                        style: const TextStyle(
+                                          color: CinemaTheme.textSecondary,
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
-                                      Text(schedule.hall, style: const TextStyle(color: CinemaTheme.accent, fontWeight: FontWeight.w700)),
+                                      Text(
+                                        schedule.hall,
+                                        style: const TextStyle(
+                                          color: CinemaTheme.accent,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                                 IconButton(
                                   onPressed: () => _deleteSchedule(schedule.id),
-                                  icon: const Icon(Icons.delete_outline_rounded, color: CinemaTheme.danger),
+                                  icon: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: CinemaTheme.danger,
+                                  ),
                                 ),
                               ],
                             ),
@@ -618,11 +899,11 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
     );
   }
 }
+
 class _AdminAdsNotifHub extends StatelessWidget {
   final VoidCallback onAddAds;
-  final VoidCallback onAddNotif;
 
-  const _AdminAdsNotifHub({required this.onAddAds, required this.onAddNotif});
+  const _AdminAdsNotifHub({required this.onAddAds});
 
   @override
   Widget build(BuildContext context) {
@@ -634,40 +915,29 @@ class _AdminAdsNotifHub extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                cinemaSectionTitle('Ads & Notifications', subtitle: 'Manage banners and announcements'),
+                cinemaSectionTitle('Ads', subtitle: 'Manage banners'),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: onAddAds,
-                        child: cinemaCard(
-                          child: Column(
-                            children: [
-                              const Icon(Icons.campaign_rounded, color: CinemaTheme.accent, size: 34),
-                              const SizedBox(height: 10),
-                              const Text('Ads', style: TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
-                            ],
+                GestureDetector(
+                  onTap: onAddAds,
+                  child: cinemaCard(
+                    child: const Column(
+                      children: [
+                        Icon(
+                          Icons.campaign_rounded,
+                          color: CinemaTheme.accent,
+                          size: 34,
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Ads',
+                          style: TextStyle(
+                            color: CinemaTheme.textPrimary,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: onAddNotif,
-                        child: cinemaCard(
-                          child: Column(
-                            children: [
-                              const Icon(Icons.notifications_active_rounded, color: CinemaTheme.accent, size: 34),
-                              const SizedBox(height: 10),
-                              const Text('Notifications', style: TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -678,63 +948,84 @@ class _AdminAdsNotifHub extends StatelessWidget {
   }
 }
 
-  Widget _roleChip(String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: CinemaTheme.accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: CinemaTheme.accent.withValues(alpha: 0.3)),
+Widget _roleChip(String value) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: CinemaTheme.accent.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: CinemaTheme.accent.withValues(alpha: 0.3)),
+    ),
+    child: Text(
+      value,
+      style: const TextStyle(
+        color: CinemaTheme.accent,
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
       ),
-      child: Text(
-        value,
-        style: const TextStyle(
-          color: CinemaTheme.accent,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _profileAction(IconData icon, String title, String subtitle, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: CinemaTheme.cardAlt,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: CinemaTheme.accent.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: CinemaTheme.accent, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: CinemaTheme.textSecondary),
-          ],
-        ),
+Widget _profileAction(
+  IconData icon,
+  String title,
+  String subtitle,
+  VoidCallback onTap,
+) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(18),
+    child: Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CinemaTheme.cardAlt,
+        borderRadius: BorderRadius.circular(18),
       ),
-    );
-  }
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: CinemaTheme.accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: CinemaTheme.accent, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: CinemaTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: CinemaTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: CinemaTheme.textSecondary,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _AdminProfileHub extends StatelessWidget {
   final String userName;
   final String email;
@@ -770,14 +1061,33 @@ class _AdminProfileHub extends StatelessWidget {
                       height: 84,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: [CinemaTheme.accent, CinemaTheme.purple]),
+                        gradient: LinearGradient(
+                          colors: [CinemaTheme.accent, CinemaTheme.purple],
+                        ),
                       ),
-                      child: const Icon(Icons.person_rounded, color: Colors.black, size: 42),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: Colors.black,
+                        size: 42,
+                      ),
                     ),
                     const SizedBox(height: 14),
-                    Text(userName, style: const TextStyle(color: CinemaTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.w900)),
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        color: CinemaTheme.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                     const SizedBox(height: 5),
-                    Text(email, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                    Text(
+                      email,
+                      style: const TextStyle(
+                        color: CinemaTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     _roleChip('Admin'),
                   ],
@@ -805,7 +1115,10 @@ class _AdminProfileHub extends StatelessWidget {
                         onPressed: onLogout,
                         icon: const Icon(Icons.logout_rounded),
                         label: const Text('Logout'),
-                        style: FilledButton.styleFrom(backgroundColor: CinemaTheme.danger, foregroundColor: Colors.white),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: CinemaTheme.danger,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -822,7 +1135,8 @@ class _AdminProfileHub extends StatelessWidget {
 class _MoviePopup extends StatefulWidget {
   final Future<void> Function(TextEditingController target) onPickImage;
   const _MoviePopup({required this.onPickImage});
-  @override State<_MoviePopup> createState() => _MoviePopupState();
+  @override
+  State<_MoviePopup> createState() => _MoviePopupState();
 }
 
 class _MoviePopupState extends State<_MoviePopup> {
@@ -833,6 +1147,11 @@ class _MoviePopupState extends State<_MoviePopup> {
   final _price = TextEditingController();
   final _poster = TextEditingController();
   String _status = 'Now Showing';
+
+  double _parseTicketPrice() {
+    final normalized = _price.text.replaceAll(RegExp(r'[.,\s]'), '');
+    return double.tryParse(normalized) ?? 0;
+  }
 
   @override
   void dispose() {
@@ -854,46 +1173,127 @@ class _MoviePopupState extends State<_MoviePopup> {
           color: CinemaTheme.bg,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: ListView(
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           children: [
             Row(
               children: [
-                const Expanded(child: Text('Add Movie', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w800))),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded)),
+                const Expanded(
+                  child: Text(
+                    'Add Movie',
+                    style: TextStyle(
+                      color: CinemaTheme.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
               ],
             ),
             cinemaCard(
               child: Column(
                 children: [
-                  TextField(controller: _title, decoration: const InputDecoration(labelText: 'Movie title')),
+                  TextField(
+                    controller: _title,
+                    decoration: const InputDecoration(
+                      labelText: 'Movie title',
+                      hintText: 'Contoh: Avengers: Endgame',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _genre, decoration: const InputDecoration(labelText: 'Genre')),
+                  TextField(
+                    controller: _genre,
+                    decoration: const InputDecoration(
+                      labelText: 'Genre',
+                      hintText: 'Contoh: Action / Sci-Fi',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _duration, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Duration minutes')),
+                  TextField(
+                    controller: _duration,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Duration minutes',
+                      hintText: 'Contoh: 120',
+                      helperText: 'Isi angka menit saja',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _synopsis, decoration: const InputDecoration(labelText: 'Synopsis'), maxLines: 3),
+                  TextField(
+                    controller: _synopsis,
+                    decoration: const InputDecoration(
+                      labelText: 'Synopsis',
+                      hintText: 'Ringkasan pendek film',
+                    ),
+                    maxLines: 3,
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Ticket price')),
+                  TextField(
+                    controller: _price,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Ticket price',
+                      hintText: 'Contoh: 50000 atau 50.000',
+                      helperText: 'Harga disimpan sebagai angka rupiah',
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => widget.onPickImage(_poster),
+                      onPressed: () async {
+                        await widget.onPickImage(_poster);
+                        if (mounted) setState(() {});
+                      },
                       icon: const Icon(Icons.upload_file_rounded),
                       label: const Text('Import poster from laptop'),
                     ),
                   ),
+                  if (_poster.text.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        _poster.text,
+                        height: 180,
+                        width: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 180,
+                          width: 120,
+                          alignment: Alignment.center,
+                          color: CinemaTheme.cardAlt,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: CinemaTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _status,
                     items: const [
-                      DropdownMenuItem(value: 'Now Showing', child: Text('Now Showing')),
-                      DropdownMenuItem(value: 'Coming Soon', child: Text('Coming Soon')),
+                      DropdownMenuItem(
+                        value: 'Now Showing',
+                        child: Text('Now Showing'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Coming Soon',
+                        child: Text('Coming Soon'),
+                      ),
                     ],
-                    onChanged: (value) => setState(() => _status = value ?? 'Now Showing'),
+                    onChanged: (value) =>
+                        setState(() => _status = value ?? 'Now Showing'),
                     decoration: const InputDecoration(labelText: 'Status'),
                   ),
                   const SizedBox(height: 16),
@@ -903,7 +1303,9 @@ class _MoviePopupState extends State<_MoviePopup> {
                       onPressed: () async {
                         if (_poster.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Poster image is required')),
+                            const SnackBar(
+                              content: Text('Poster image is required'),
+                            ),
                           );
                           return;
                         }
@@ -913,7 +1315,7 @@ class _MoviePopupState extends State<_MoviePopup> {
                             genre: _genre.text,
                             duration: int.tryParse(_duration.text) ?? 0,
                             synopsis: _synopsis.text,
-                            price: double.tryParse(_price.text) ?? 0,
+                            price: _parseTicketPrice(),
                             imageUrl: _poster.text,
                             status: _status,
                           );
@@ -921,11 +1323,16 @@ class _MoviePopupState extends State<_MoviePopup> {
                         } catch (error) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Save movie failed: $error')),
+                            SnackBar(
+                              content: Text('Save movie failed: $error'),
+                            ),
                           );
                         }
                       },
-                      style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: CinemaTheme.accent,
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Text('Save Movie'),
                     ),
                   ),
@@ -942,7 +1349,8 @@ class _MoviePopupState extends State<_MoviePopup> {
 class _AdsPopup extends StatefulWidget {
   final Future<void> Function(TextEditingController target) onPickImage;
   const _AdsPopup({required this.onPickImage});
-  @override State<_AdsPopup> createState() => _AdsPopupState();
+  @override
+  State<_AdsPopup> createState() => _AdsPopupState();
 }
 
 class _AdsPopupState extends State<_AdsPopup> {
@@ -969,34 +1377,82 @@ class _AdsPopupState extends State<_AdsPopup> {
           color: CinemaTheme.bg,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: ListView(
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           children: [
             Row(
               children: [
-                const Expanded(child: Text('Add Ad', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w800))),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded)),
+                const Expanded(
+                  child: Text(
+                    'Add Ad',
+                    style: TextStyle(
+                      color: CinemaTheme.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
               ],
             ),
             cinemaCard(
               child: Column(
                 children: [
-                  TextField(controller: _title, decoration: const InputDecoration(labelText: 'Title')),
+                  TextField(
+                    controller: _title,
+                    decoration: const InputDecoration(labelText: 'Title'),
+                  ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => widget.onPickImage(_image),
+                      onPressed: () async {
+                        await widget.onPickImage(_image);
+                        if (mounted) setState(() {});
+                      },
                       icon: const Icon(Icons.upload_file_rounded),
                       label: const Text('Import banner from laptop'),
                     ),
                   ),
+                  if (_image.text.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        _image.text,
+                        height: 120,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 120,
+                          alignment: Alignment.center,
+                          color: CinemaTheme.cardAlt,
+                          child: const Text(
+                            'Preview unavailable',
+                            style: TextStyle(color: CinemaTheme.textSecondary),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
-                  TextField(controller: _link, decoration: const InputDecoration(labelText: 'Link URL')),
+                  TextField(
+                    controller: _link,
+                    decoration: const InputDecoration(labelText: 'Link URL'),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _sort, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Sort order')),
+                  TextField(
+                    controller: _sort,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Sort order'),
+                  ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
@@ -1004,7 +1460,9 @@ class _AdsPopupState extends State<_AdsPopup> {
                       onPressed: () async {
                         if (_image.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Banner image is required')),
+                            const SnackBar(
+                              content: Text('Banner image is required'),
+                            ),
                           );
                           return;
                         }
@@ -1025,7 +1483,10 @@ class _AdsPopupState extends State<_AdsPopup> {
                           );
                         }
                       },
-                      style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: CinemaTheme.accent,
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Text('Save Ad'),
                     ),
                   ),
@@ -1038,97 +1499,3 @@ class _AdsPopupState extends State<_AdsPopup> {
     );
   }
 }
-
-class _NotifPopup extends StatefulWidget {
-  const _NotifPopup();
-  @override State<_NotifPopup> createState() => _NotifPopupState();
-}
-
-class _NotifPopupState extends State<_NotifPopup> {
-  final _title = TextEditingController();
-  final _message = TextEditingController();
-
-  @override
-  void dispose() {
-    _title.dispose();
-    _message.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: CinemaTheme.bg,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          children: [
-            Row(
-              children: [
-                const Expanded(child: Text('Add Notification', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w800))),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded)),
-              ],
-            ),
-            cinemaCard(
-              child: Column(
-                children: [
-                  TextField(controller: _title, decoration: const InputDecoration(labelText: 'Title')),
-                  const SizedBox(height: 12),
-                  TextField(controller: _message, decoration: const InputDecoration(labelText: 'Message'), maxLines: 4),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () async {
-                        try {
-                          await createNotification(
-                            title: _title.text,
-                            message: _message.text,
-                            adminOnly: false,
-                          );
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                        } catch (error) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Send notification failed: $error')),
-                          );
-                        }
-                      },
-                      style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
-                      child: const Text('Send Notification'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

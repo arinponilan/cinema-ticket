@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -16,11 +17,16 @@ Future<List<MovieData>> fetchMovies() async {
     throw Exception('Invalid movie response');
   }
 
-  return decoded.whereType<Map<String, dynamic>>().map(MovieData.fromJson).toList();
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(MovieData.fromJson)
+      .toList();
 }
 
 Future<List<ScheduleSlot>> fetchSchedulesForMovie(int movieId) async {
-  final response = await http.get(Uri.parse('$apiBaseUrl/api/schedules/movie/$movieId'));
+  final response = await http.get(
+    Uri.parse('$apiBaseUrl/api/schedules/movie/$movieId'),
+  );
   if (response.statusCode != 200) {
     throw Exception('Failed to load schedules (${response.statusCode})');
   }
@@ -30,11 +36,16 @@ Future<List<ScheduleSlot>> fetchSchedulesForMovie(int movieId) async {
     throw Exception('Invalid schedule response');
   }
 
-  return decoded.whereType<Map<String, dynamic>>().map(ScheduleSlot.fromJson).toList();
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(ScheduleSlot.fromJson)
+      .toList();
 }
 
 Future<List<SeatModel>> fetchSeatsForSchedule(int scheduleId) async {
-  final response = await http.get(Uri.parse('$apiBaseUrl/api/seats/schedule/$scheduleId'));
+  final response = await http.get(
+    Uri.parse('$apiBaseUrl/api/seats/schedule/$scheduleId'),
+  );
   if (response.statusCode != 200) {
     throw Exception('Failed to load seats (${response.statusCode})');
   }
@@ -44,7 +55,10 @@ Future<List<SeatModel>> fetchSeatsForSchedule(int scheduleId) async {
     throw Exception('Invalid seat response');
   }
 
-  return decoded.whereType<Map<String, dynamic>>().map(SeatModel.fromJson).toList();
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(SeatModel.fromJson)
+      .toList();
 }
 
 Future<Map<String, dynamic>> createBooking({
@@ -78,7 +92,9 @@ Future<Map<String, dynamic>> createBooking({
 }
 
 Future<List<BookingHistoryItem>> fetchBookingHistory(int userId) async {
-  final response = await http.get(Uri.parse('$apiBaseUrl/api/bookings/user/$userId'));
+  final response = await http.get(
+    Uri.parse('$apiBaseUrl/api/bookings/user/$userId'),
+  );
   if (response.statusCode != 200) {
     throw Exception('Failed to load booking history (${response.statusCode})');
   }
@@ -88,11 +104,16 @@ Future<List<BookingHistoryItem>> fetchBookingHistory(int userId) async {
     throw Exception('Invalid booking history response');
   }
 
-  return decoded.whereType<Map<String, dynamic>>().map(BookingHistoryItem.fromJson).toList();
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(BookingHistoryItem.fromJson)
+      .toList();
 }
 
 Future<ProfileSummary> fetchProfileSummary(int userId) async {
-  final response = await http.get(Uri.parse('$apiBaseUrl/api/bookings/user/$userId/profile'));
+  final response = await http.get(
+    Uri.parse('$apiBaseUrl/api/bookings/user/$userId/profile'),
+  );
   if (response.statusCode != 200) {
     throw Exception('Failed to load profile summary (${response.statusCode})');
   }
@@ -105,21 +126,11 @@ Future<ProfileSummary> fetchProfileSummary(int userId) async {
   return ProfileSummary.fromJson(decoded);
 }
 
-Future<List<NotificationItem>> fetchNotifications() async {
-  final response = await http.get(Uri.parse('$apiBaseUrl/api/notifications'));
-  if (response.statusCode != 200) {
-    throw Exception('Failed to load notifications (${response.statusCode})');
-  }
-
-  final decoded = jsonDecode(response.body);
-  if (decoded is! List) {
-    throw Exception('Invalid notification response');
-  }
-
-  return decoded.whereType<Map<String, dynamic>>().map(NotificationItem.fromJson).toList();
-}
 Future<String> uploadImageFile(String path) async {
-  final request = http.MultipartRequest('POST', Uri.parse('$apiBaseUrl/api/uploads/image'));
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('$apiBaseUrl/api/uploads/image'),
+  );
   request.files.add(await http.MultipartFile.fromPath('file', path));
   final streamed = await request.send();
   final response = await http.Response.fromStream(streamed);
@@ -136,6 +147,38 @@ Future<String> uploadImageFile(String path) async {
   }
   throw Exception('Invalid upload response');
 }
+
+Future<String> uploadImageBytes({
+  required String filename,
+  required Uint8List bytes,
+}) async {
+  if (bytes.isEmpty) {
+    throw Exception('Selected file is empty');
+  }
+
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('$apiBaseUrl/api/uploads/image'),
+  );
+  request.files.add(
+    http.MultipartFile.fromBytes('file', bytes, filename: filename),
+  );
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
+  if (response.statusCode != 200) {
+    throw Exception(response.body.isNotEmpty ? response.body : 'Upload failed');
+  }
+  final decoded = jsonDecode(response.body);
+  if (decoded is Map<String, dynamic>) {
+    final url = decoded['url']?.toString() ?? '';
+    if (url.isEmpty) {
+      throw Exception('Upload response missing url');
+    }
+    return url;
+  }
+  throw Exception('Invalid upload response');
+}
+
 Future<List<PromotionItem>> fetchPromotions() async {
   final response = await http.get(Uri.parse('$apiBaseUrl/api/ads'));
   if (response.statusCode != 200) {
@@ -147,36 +190,10 @@ Future<List<PromotionItem>> fetchPromotions() async {
     throw Exception('Invalid promotion response');
   }
 
-  return decoded.whereType<Map<String, dynamic>>().map(PromotionItem.fromJson).toList();
-}
-
-Future<void> markNotificationAsRead(int id) async {
-  final response = await http.put(Uri.parse('$apiBaseUrl/api/notifications/$id/read'));
-  if (response.statusCode != 200) {
-    throw Exception('Failed to mark notification as read');
-  }
-}
-
-Future<void> markAllNotificationsAsRead() async {
-  final response = await http.put(Uri.parse('$apiBaseUrl/api/notifications/read-all'));
-  if (response.statusCode != 200) {
-    throw Exception('Failed to mark all notifications as read');
-  }
-}
-
-Future<void> createNotification({
-  required String title,
-  required String message,
-  bool adminOnly = false,
-}) async {
-  final response = await http.post(
-    Uri.parse('$apiBaseUrl/api/notifications'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'title': title, 'message': message, 'adminOnly': adminOnly}),
-  );
-  if (response.statusCode != 200) {
-    throw Exception(response.body.isNotEmpty ? response.body : 'Failed to create notification');
-  }
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(PromotionItem.fromJson)
+      .toList();
 }
 
 Future<void> saveAdvertisement({
@@ -198,7 +215,9 @@ Future<void> saveAdvertisement({
     }),
   );
   if (response.statusCode != 200) {
-    throw Exception(response.body.isNotEmpty ? response.body : 'Failed to save advertisement');
+    throw Exception(
+      response.body.isNotEmpty ? response.body : 'Failed to save advertisement',
+    );
   }
 }
 
@@ -225,7 +244,9 @@ Future<void> changePassword({
   );
 
   if (response.statusCode != 200) {
-    throw Exception(response.body.isNotEmpty ? response.body : 'Change password failed');
+    throw Exception(
+      response.body.isNotEmpty ? response.body : 'Change password failed',
+    );
   }
 }
 
@@ -267,9 +288,13 @@ Future<MovieData> saveAdminMovie({
 }
 
 Future<void> deleteAdminMovie(int id) async {
-  final response = await http.delete(Uri.parse('$apiBaseUrl/api/admin/movies/$id'));
+  final response = await http.delete(
+    Uri.parse('$apiBaseUrl/api/admin/movies/$id'),
+  );
   if (response.statusCode != 200) {
-    throw Exception('Failed to delete movie');
+    throw Exception(
+      response.body.isNotEmpty ? response.body : 'Failed to delete movie',
+    );
   }
 }
 
@@ -282,7 +307,10 @@ Future<List<ScheduleSlot>> fetchAdminSchedules() async {
   if (decoded is! List) {
     throw Exception('Invalid admin schedule response');
   }
-  return decoded.whereType<Map<String, dynamic>>().map(ScheduleSlot.fromJson).toList();
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(ScheduleSlot.fromJson)
+      .toList();
 }
 
 Future<void> saveAdminSchedule({
@@ -312,14 +340,18 @@ Future<void> saveAdminSchedule({
 }
 
 Future<void> deleteAdminSchedule(int id) async {
-  final response = await http.delete(Uri.parse('$apiBaseUrl/api/admin/schedules/$id'));
+  final response = await http.delete(
+    Uri.parse('$apiBaseUrl/api/admin/schedules/$id'),
+  );
   if (response.statusCode != 200) {
     throw Exception('Failed to delete schedule');
   }
 }
 
 Future<List<SeatModel>> fetchAdminSeats(int scheduleId) async {
-  final response = await http.get(Uri.parse('$apiBaseUrl/api/admin/seats/$scheduleId'));
+  final response = await http.get(
+    Uri.parse('$apiBaseUrl/api/admin/seats/$scheduleId'),
+  );
   if (response.statusCode != 200) {
     throw Exception('Failed to load admin seats (${response.statusCode})');
   }
@@ -327,11 +359,17 @@ Future<List<SeatModel>> fetchAdminSeats(int scheduleId) async {
   if (decoded is! List) {
     throw Exception('Invalid admin seat response');
   }
-  return decoded.whereType<Map<String, dynamic>>().map(SeatModel.fromJson).toList();
+  return decoded
+      .whereType<Map<String, dynamic>>()
+      .map(SeatModel.fromJson)
+      .toList();
 }
 
 Future<void> updateSeatStatus(int seatId, bool booked) async {
-  final request = http.Request('PUT', Uri.parse('$apiBaseUrl/api/admin/seats/$seatId'));
+  final request = http.Request(
+    'PUT',
+    Uri.parse('$apiBaseUrl/api/admin/seats/$seatId'),
+  );
   request.headers['Content-Type'] = 'application/json';
   request.body = jsonEncode({'booked': booked});
   final streamed = await request.send();
@@ -340,4 +378,3 @@ Future<void> updateSeatStatus(int seatId, bool booked) async {
     throw Exception(response.body);
   }
 }
-

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -11,7 +12,6 @@ class ProfilePage extends StatelessWidget {
   final String userName;
   final String email;
   final String role;
-  final VoidCallback onOpenNotifications;
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenChangePassword;
   final VoidCallback? onOpenAdmin;
@@ -22,7 +22,6 @@ class ProfilePage extends StatelessWidget {
     required this.userName,
     required this.email,
     required this.role,
-    required this.onOpenNotifications,
     required this.onOpenHistory,
     required this.onOpenChangePassword,
     required this.onOpenAdmin,
@@ -40,12 +39,6 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 14),
               _profileStats(),
               const SizedBox(height: 14),
-              _menuTile(
-                icon: Icons.notifications_none_rounded,
-                title: 'Notifications',
-                subtitle: 'Backend notifications',
-                onTap: onOpenNotifications,
-              ),
               _menuTile(
                 icon: Icons.receipt_long_rounded,
                 title: 'Transaction History',
@@ -155,9 +148,7 @@ class ProfilePage extends StatelessWidget {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(
-                child: CircularProgressIndicator(
-                  color: CinemaTheme.accent,
-                ),
+                child: CircularProgressIndicator(color: CinemaTheme.accent),
               ),
             );
           }
@@ -192,6 +183,7 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
+
   Widget _roleChip(String value) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -314,101 +306,21 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class NotificationsPage extends StatefulWidget {
-  final int userId;
-  final String role;
-  const NotificationsPage({super.key, required this.userId, required this.role});
-  @override State<NotificationsPage> createState() => _NotificationsPageState();
-}
-
-class _NotificationsPageState extends State<NotificationsPage> {
-  late Future<List<NotificationItem>> _future;
-  @override void initState() { super.initState(); _future = fetchNotifications(); }
-  Future<void> _reload() async => setState(() => _future = fetchNotifications());
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: cinemaBackdrop(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_rounded)),
-                    const SizedBox(width: 4),
-                    const Expanded(child: Text('Notifications', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w800))),
-                    TextButton(onPressed: () async { await markAllNotificationsAsRead(); await _reload(); }, child: const Text('Mark all as read')),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: FutureBuilder<List<NotificationItem>>(
-                    future: _future,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
-                      if (snapshot.hasError) return const Center(child: Text('Failed to load notifications', style: TextStyle(color: CinemaTheme.textSecondary)));
-                      final items = snapshot.data ?? const [];
-                      if (items.isEmpty) return const Center(child: Text('No notifications yet', style: TextStyle(color: CinemaTheme.textSecondary)));
-                      return RefreshIndicator(
-                        onRefresh: _reload,
-                        color: CinemaTheme.accent,
-                        child: ListView.separated(
-                          itemCount: items.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            return cinemaCard(
-                              child: ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: item.readStatus ? CinemaTheme.cardAlt : CinemaTheme.accent.withValues(alpha: 0.18),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    item.readStatus ? Icons.mark_email_read_outlined : Icons.notifications_active_outlined,
-                                    color: item.readStatus ? CinemaTheme.textSecondary : CinemaTheme.accent,
-                                  ),
-                                ),
-                                title: Text(item.title, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
-                                subtitle: Text(item.message, style: const TextStyle(color: CinemaTheme.textSecondary)),
-                                trailing: item.readStatus ? null : TextButton(
-                                  onPressed: () async {
-                                    await markNotificationAsRead(item.id);
-                                    await _reload();
-                                  },
-                                  child: const Text('Read'),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class TransactionHistoryPage extends StatefulWidget {
   final int userId;
   const TransactionHistoryPage({super.key, required this.userId});
-  @override State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
+  @override
+  State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
 }
 
 class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   late Future<List<BookingHistoryItem>> _future;
-  @override void initState() { super.initState(); _future = fetchBookingHistory(widget.userId); }
+  @override
+  void initState() {
+    super.initState();
+    _future = fetchBookingHistory(widget.userId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -420,9 +332,19 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
               children: [
                 Row(
                   children: [
-                    IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_rounded)),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                    ),
                     const SizedBox(width: 4),
-                    const Text('Transaction History', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w800)),
+                    const Text(
+                      'Transaction History',
+                      style: TextStyle(
+                        color: CinemaTheme.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -430,30 +352,82 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                   child: FutureBuilder<List<BookingHistoryItem>>(
                     future: _future,
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
-                      if (snapshot.hasError) return const Center(child: Text('Failed to load history', style: TextStyle(color: CinemaTheme.textSecondary)));
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: CinemaTheme.accent,
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text(
+                            'Failed to load history',
+                            style: TextStyle(color: CinemaTheme.textSecondary),
+                          ),
+                        );
+                      }
                       final items = snapshot.data ?? const [];
-                      if (items.isEmpty) return const Center(child: Text('No transactions yet', style: TextStyle(color: CinemaTheme.textSecondary)));
+                      if (items.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No transactions yet',
+                            style: TextStyle(color: CinemaTheme.textSecondary),
+                          ),
+                        );
+                      }
                       return ListView.separated(
                         itemCount: items.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final item = items[index];
                           return cinemaCard(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item.movieTitle, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                                Text(
+                                  item.movieTitle,
+                                  style: const TextStyle(
+                                    color: CinemaTheme.textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
-                                Text('${item.bookingDate} • ${item.showTime}', style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                                Text(
+                                  '${item.bookingDate} • ${item.showTime}',
+                                  style: const TextStyle(
+                                    color: CinemaTheme.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
                                 const SizedBox(height: 6),
-                                Text(item.seatNumbers.join(', '), style: const TextStyle(color: CinemaTheme.accent, fontWeight: FontWeight.w700)),
+                                Text(
+                                  item.seatNumbers.join(', '),
+                                  style: const TextStyle(
+                                    color: CinemaTheme.accent,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(item.bookingCode, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
-                                    Text(money(item.totalPrice), style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                                    Text(
+                                      item.bookingCode,
+                                      style: const TextStyle(
+                                        color: CinemaTheme.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text(
+                                      money(item.totalPrice),
+                                      style: const TextStyle(
+                                        color: CinemaTheme.textPrimary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -476,7 +450,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 class ChangePasswordPage extends StatefulWidget {
   final String email;
   const ChangePasswordPage({super.key, required this.email});
-  @override State<ChangePasswordPage> createState() => _ChangePasswordPageState();
+  @override
+  State<ChangePasswordPage> createState() => _ChangePasswordPageState();
 }
 
 class _ChangePasswordPageState extends State<ChangePasswordPage> {
@@ -484,14 +459,26 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final _newPass = TextEditingController();
   final _confirm = TextEditingController();
   bool _loading = false;
-  void _snack(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  void _snack(String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
   Future<void> _submit() async {
-    if (_current.text.isEmpty) return _snack('Current password is required');
-    if (_newPass.text.length < 8) return _snack('New password must be at least 8 characters');
-    if (_newPass.text != _confirm.text) return _snack('Confirm password does not match');
+    if (_current.text.isEmpty) {
+      return _snack('Current password is required');
+    }
+    if (_newPass.text.length < 8) {
+      return _snack('New password must be at least 8 characters');
+    }
+    if (_newPass.text != _confirm.text) {
+      return _snack('Confirm password does not match');
+    }
     setState(() => _loading = true);
     try {
-      await changePassword(email: widget.email, currentPassword: _current.text, newPassword: _newPass.text);
+      await changePassword(
+        email: widget.email,
+        currentPassword: _current.text,
+        newPassword: _newPass.text,
+      );
       if (!mounted) return;
       _snack('Password updated successfully');
       Navigator.pop(context);
@@ -501,22 +488,102 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       if (mounted) setState(() => _loading = false);
     }
   }
-  @override Widget build(BuildContext context) => Scaffold(body: cinemaBackdrop(child: SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 24), children: [Row(children: [IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_rounded)), const SizedBox(width: 4), const Text('Change Password', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w800))]), const SizedBox(height: 14), cinemaCard(child: Column(children: [TextField(controller: _current, obscureText: true, decoration: const InputDecoration(labelText: 'Current password')), const SizedBox(height: 12), TextField(controller: _newPass, obscureText: true, decoration: const InputDecoration(labelText: 'New password')), const SizedBox(height: 12), TextField(controller: _confirm, obscureText: true, decoration: const InputDecoration(labelText: 'Confirm password')), const SizedBox(height: 18), SizedBox(width: double.infinity, child: FilledButton(onPressed: _loading ? null : _submit, style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black), child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('Update Password')))]))]))));
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: cinemaBackdrop(
+      child: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Change Password',
+                  style: TextStyle(
+                    color: CinemaTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            cinemaCard(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _current,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Current password',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _newPass,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'New password',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _confirm,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Confirm password',
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _loading ? null : _submit,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: CinemaTheme.accent,
+                        foregroundColor: Colors.black,
+                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Text('Update Password'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class AdminPanelPage extends StatefulWidget {
   final int userId;
   const AdminPanelPage({super.key, required this.userId});
-  @override State<AdminPanelPage> createState() => _AdminPanelPageState();
+  @override
+  State<AdminPanelPage> createState() => _AdminPanelPageState();
 }
 
-class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProviderStateMixin {
+class _AdminPanelPageState extends State<AdminPanelPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Future<List<MovieData>> _moviesFuture;
   late Future<List<ScheduleSlot>> _schedulesFuture;
   late Future<List<PromotionItem>> _adsFuture;
-  final _notifTitle = TextEditingController();
-  final _notifMessage = TextEditingController();
   final _movieTitle = TextEditingController();
   final _movieGenre = TextEditingController();
   final _movieDuration = TextEditingController();
@@ -536,19 +603,32 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _moviesFuture = fetchAdminMovies();
     _schedulesFuture = fetchAdminSchedules();
     _adsFuture = fetchPromotions();
   }
 
   Future<void> _pickAndUploadImage(TextEditingController target) async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: false);
-    if (result == null || result.files.single.path == null) return;
-    final url = await uploadImageFile(result.files.single.path!);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result == null) return;
+    final file = result.files.single;
+    final url = kIsWeb
+        ? await uploadImageBytes(
+            filename: file.name,
+            bytes: file.bytes ?? Uint8List(0),
+          )
+        : await uploadImageFile(
+            file.path ?? (throw Exception('Selected file path is empty')),
+          );
     if (!mounted) return;
     setState(() => target.text = url);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image uploaded')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Image uploaded')));
   }
 
   void _refresh() {
@@ -562,8 +642,6 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
   @override
   void dispose() {
     _tabController.dispose();
-    _notifTitle.dispose();
-    _notifMessage.dispose();
     _movieTitle.dispose();
     _movieGenre.dispose();
     _movieDuration.dispose();
@@ -616,7 +694,6 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                   tabs: const [
                     Tab(text: 'Movies'),
                     Tab(text: 'Schedules'),
-                    Tab(text: 'Notifications'),
                     Tab(text: 'Ads'),
                   ],
                 ),
@@ -624,12 +701,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
-                    children: [
-                      _movieTab(),
-                      _scheduleTab(),
-                      _notificationTab(),
-                      _adsTab(),
-                    ],
+                    children: [_movieTab(), _scheduleTab(), _adsTab()],
                   ),
                 ),
               ],
@@ -651,10 +723,17 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
       future: _moviesFuture,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
+          return const Center(
+            child: CircularProgressIndicator(color: CinemaTheme.accent),
+          );
         }
         if (snap.hasError) {
-          return const Center(child: Text('Failed to load movies', style: TextStyle(color: CinemaTheme.textSecondary)));
+          return const Center(
+            child: Text(
+              'Failed to load movies',
+              style: TextStyle(color: CinemaTheme.textSecondary),
+            ),
+          );
         }
         final movies = snap.data ?? const [];
         return ListView(
@@ -662,17 +741,42 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
             cinemaCard(
               child: Column(
                 children: [
-                  TextField(controller: _movieTitle, decoration: const InputDecoration(labelText: 'Movie title')),
+                  TextField(
+                    controller: _movieTitle,
+                    decoration: const InputDecoration(labelText: 'Movie title'),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _movieGenre, decoration: const InputDecoration(labelText: 'Genre')),
+                  TextField(
+                    controller: _movieGenre,
+                    decoration: const InputDecoration(labelText: 'Genre'),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _movieDuration, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Duration minutes')),
+                  TextField(
+                    controller: _movieDuration,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Duration minutes',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _movieSynopsis, maxLines: 3, decoration: const InputDecoration(labelText: 'Synopsis')),
+                  TextField(
+                    controller: _movieSynopsis,
+                    maxLines: 3,
+                    decoration: const InputDecoration(labelText: 'Synopsis'),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _moviePrice, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Ticket price')),
+                  TextField(
+                    controller: _moviePrice,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Ticket price',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _movieImage, decoration: const InputDecoration(labelText: 'Poster URL')),
+                  TextField(
+                    controller: _movieImage,
+                    decoration: const InputDecoration(labelText: 'Poster URL'),
+                  ),
                   const SizedBox(height: 10),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -687,30 +791,32 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                     initialValue: _movieStatus.text,
                     decoration: const InputDecoration(labelText: 'Status'),
                     items: const [
-                      DropdownMenuItem(value: 'Now Showing', child: Text('Now Showing')),
-                      DropdownMenuItem(value: 'Coming Soon', child: Text('Coming Soon')),
+                      DropdownMenuItem(
+                        value: 'Now Showing',
+                        child: Text('Now Showing'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Coming Soon',
+                        child: Text('Coming Soon'),
+                      ),
                     ],
-                    onChanged: (value) => setState(() => _movieStatus.text = value ?? 'Now Showing'),
+                    onChanged: (value) => setState(
+                      () => _movieStatus.text = value ?? 'Now Showing',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () async {
-                        final title = _movieTitle.text;
                         await saveAdminMovie(
-                          title: title,
+                          title: _movieTitle.text,
                           genre: _movieGenre.text,
                           duration: int.tryParse(_movieDuration.text) ?? 0,
                           synopsis: _movieSynopsis.text,
                           price: double.tryParse(_moviePrice.text) ?? 0,
                           imageUrl: _movieImage.text,
                           status: _movieStatus.text,
-                        );
-                        await createNotification(
-                          title: '🎬 New Movie Alert!',
-                          message: '$title is now available on TIXTIX PREMIERE.',
-                          adminOnly: false,
                         );
                         _movieTitle.clear();
                         _movieGenre.clear();
@@ -721,7 +827,10 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                         _movieStatus.text = 'Now Showing';
                         _refresh();
                       },
-                      style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: CinemaTheme.accent,
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Text('Save Movie'),
                     ),
                   ),
@@ -730,7 +839,12 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
             ),
             const SizedBox(height: 12),
             if (movies.isEmpty)
-              const Center(child: Text('No movies found', style: TextStyle(color: CinemaTheme.textSecondary)))
+              const Center(
+                child: Text(
+                  'No movies found',
+                  style: TextStyle(color: CinemaTheme.textSecondary),
+                ),
+              )
             else
               ...movies.map((movie) {
                 return Padding(
@@ -745,7 +859,12 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                             width: 60,
                             height: 84,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(width: 60, height: 84, color: CinemaTheme.cardAlt),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  width: 60,
+                                  height: 84,
+                                  color: CinemaTheme.cardAlt,
+                                ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -753,16 +872,50 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(movie.title, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                              Text(
+                                movie.title,
+                                style: const TextStyle(
+                                  color: CinemaTheme.textPrimary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(movie.genre, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                              Text(
+                                movie.genre,
+                                style: const TextStyle(
+                                  color: CinemaTheme.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(money(movie.price), style: const TextStyle(color: CinemaTheme.accent, fontWeight: FontWeight.w800)),
+                              Text(
+                                money(movie.price),
+                                style: const TextStyle(
+                                  color: CinemaTheme.accent,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        IconButton(onPressed: () async => _pickAndUploadImage(_movieImage), icon: const Icon(Icons.image_rounded, color: CinemaTheme.accent)),
-                        IconButton(onPressed: () async { await deleteAdminMovie(movie.id); _refresh(); }, icon: const Icon(Icons.delete_outline_rounded, color: CinemaTheme.danger)),
+                        IconButton(
+                          onPressed: () async =>
+                              _pickAndUploadImage(_movieImage),
+                          icon: const Icon(
+                            Icons.image_rounded,
+                            color: CinemaTheme.accent,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            await deleteAdminMovie(movie.id);
+                            _refresh();
+                          },
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            color: CinemaTheme.danger,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -779,10 +932,17 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
       future: _schedulesFuture,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
+          return const Center(
+            child: CircularProgressIndicator(color: CinemaTheme.accent),
+          );
         }
         if (snap.hasError) {
-          return const Center(child: Text('Failed to load schedules', style: TextStyle(color: CinemaTheme.textSecondary)));
+          return const Center(
+            child: Text(
+              'Failed to load schedules',
+              style: TextStyle(color: CinemaTheme.textSecondary),
+            ),
+          );
         }
         final schedules = snap.data ?? const [];
         return ListView(
@@ -790,34 +950,45 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
             cinemaCard(
               child: Column(
                 children: [
-                  TextField(controller: _scheduleMovieId, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Movie ID')),
+                  TextField(
+                    controller: _scheduleMovieId,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Movie ID'),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _scheduleDate, decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)')),
+                  TextField(
+                    controller: _scheduleDate,
+                    decoration: const InputDecoration(
+                      labelText: 'Date (YYYY-MM-DD)',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _scheduleTime, decoration: const InputDecoration(labelText: 'Time (HH:MM)')),
+                  TextField(
+                    controller: _scheduleTime,
+                    decoration: const InputDecoration(
+                      labelText: 'Time (HH:MM)',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: _scheduleHall, decoration: const InputDecoration(labelText: 'Hall / Studio')),
+                  TextField(
+                    controller: _scheduleHall,
+                    decoration: const InputDecoration(
+                      labelText: 'Hall / Studio',
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () async {
-                        final movieId = int.tryParse(_scheduleMovieId.text) ?? 0;
-                        final movies = await _moviesFuture;
-                        final movieTitle = movies.where((m) => m.id == movieId).firstOrNull?.title ?? 'a movie';
-                        final dateStr = _scheduleDate.text;
-                        final timeStr = _scheduleTime.text;
+                        final movieId =
+                            int.tryParse(_scheduleMovieId.text) ?? 0;
 
                         await saveAdminSchedule(
                           movieId: movieId,
-                          date: dateStr,
-                          time: timeStr,
+                          date: _scheduleDate.text,
+                          time: _scheduleTime.text,
                           hall: _scheduleHall.text,
-                        );
-                        await createNotification(
-                          title: '🎫 New Schedule Available!',
-                          message: 'Tickets are now on sale for $movieTitle on $dateStr at $timeStr.',
-                          adminOnly: false,
                         );
                         _scheduleMovieId.clear();
                         _scheduleDate.clear();
@@ -825,7 +996,10 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                         _scheduleHall.clear();
                         _refresh();
                       },
-                      style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: CinemaTheme.accent,
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Text('Save Schedule'),
                     ),
                   ),
@@ -834,7 +1008,12 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
             ),
             const SizedBox(height: 12),
             if (schedules.isEmpty)
-              const Center(child: Text('No schedules found', style: TextStyle(color: CinemaTheme.textSecondary)))
+              const Center(
+                child: Text(
+                  'No schedules found',
+                  style: TextStyle(color: CinemaTheme.textSecondary),
+                ),
+              )
             else
               ...schedules.map((schedule) {
                 return Padding(
@@ -846,26 +1025,59 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Schedule #${schedule.id}', style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                              Text(
+                                'Schedule #${schedule.id}',
+                                style: const TextStyle(
+                                  color: CinemaTheme.textPrimary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text('${schedule.date} • ${schedule.time}', style: const TextStyle(color: CinemaTheme.textSecondary)),
+                              Text(
+                                '${schedule.date} • ${schedule.time}',
+                                style: const TextStyle(
+                                  color: CinemaTheme.textSecondary,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(schedule.hall, style: const TextStyle(color: CinemaTheme.accent, fontWeight: FontWeight.w700)),
+                              Text(
+                                schedule.hall,
+                                style: const TextStyle(
+                                  color: CinemaTheme.accent,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        IconButton(onPressed: () async {
-                          final messenger = ScaffoldMessenger.of(context);
-                          try {
-                            await deleteAdminSchedule(schedule.id);
-                            if (!mounted) return;
-                            _refresh();
-                            messenger.showSnackBar(const SnackBar(content: Text('Schedule deleted')));
-                          } catch (error) {
-                            if (!mounted) return;
-                            messenger.showSnackBar(SnackBar(content: Text('Failed to delete schedule: $error')));
-                          }
-                        }, icon: const Icon(Icons.delete_outline_rounded, color: CinemaTheme.danger)),
+                        IconButton(
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            try {
+                              await deleteAdminSchedule(schedule.id);
+                              if (!mounted) return;
+                              _refresh();
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Schedule deleted'),
+                                ),
+                              );
+                            } catch (error) {
+                              if (!mounted) return;
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to delete schedule: $error',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            color: CinemaTheme.danger,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -877,56 +1089,21 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
     );
   }
 
-  Widget _notificationTab() {
-    return ListView(
-      children: [
-        cinemaCard(
-          child: Column(
-            children: [
-              TextField(controller: _notifTitle, decoration: const InputDecoration(labelText: 'Title')),
-              const SizedBox(height: 12),
-              TextField(controller: _notifMessage, decoration: const InputDecoration(labelText: 'Message'), maxLines: 3),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () async {
-                    try {
-                      await createNotification(
-                        title: _notifTitle.text,
-                        message: _notifMessage.text,
-                        adminOnly: false,
-                      );
-                      if (!mounted) return;
-                      _notifTitle.clear();
-                      _notifMessage.clear();
-                      _refresh();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notification created')));
-                    } catch (error) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create notification: $error')));
-                    }
-                  },
-                  style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
-                  child: const Text('Send Notification'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _adsTab() {
     return ListView(
       children: [
         cinemaCard(
           child: Column(
             children: [
-              TextField(controller: _adTitle, decoration: const InputDecoration(labelText: 'Ad title')),
+              TextField(
+                controller: _adTitle,
+                decoration: const InputDecoration(labelText: 'Ad title'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: _adImage, decoration: const InputDecoration(labelText: 'Image URL')),
+              TextField(
+                controller: _adImage,
+                decoration: const InputDecoration(labelText: 'Image URL'),
+              ),
               const SizedBox(height: 10),
               Align(
                 alignment: Alignment.centerLeft,
@@ -937,9 +1114,16 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(controller: _adLink, decoration: const InputDecoration(labelText: 'Link URL')),
+              TextField(
+                controller: _adLink,
+                decoration: const InputDecoration(labelText: 'Link URL'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: _adSort, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Sort order')),
+              TextField(
+                controller: _adSort,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Sort order'),
+              ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -959,13 +1143,20 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                       _adLink.clear();
                       _adSort.text = '0';
                       _refresh();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ad created')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ad created')),
+                      );
                     } catch (error) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create ad: $error')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to create ad: $error')),
+                      );
                     }
                   },
-                  style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: CinemaTheme.accent,
+                    foregroundColor: Colors.black,
+                  ),
                   child: const Text('Save Ad'),
                 ),
               ),
@@ -977,14 +1168,26 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
           future: _adsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: CinemaTheme.accent));
+              return const Center(
+                child: CircularProgressIndicator(color: CinemaTheme.accent),
+              );
             }
             if (snapshot.hasError) {
-              return const Center(child: Text('Failed to load ads', style: TextStyle(color: CinemaTheme.textSecondary)));
+              return const Center(
+                child: Text(
+                  'Failed to load ads',
+                  style: TextStyle(color: CinemaTheme.textSecondary),
+                ),
+              );
             }
             final items = snapshot.data ?? const [];
             if (items.isEmpty) {
-              return const Center(child: Text('No ads found', style: TextStyle(color: CinemaTheme.textSecondary)));
+              return const Center(
+                child: Text(
+                  'No ads found',
+                  style: TextStyle(color: CinemaTheme.textSecondary),
+                ),
+              );
             }
             return ListView.separated(
               shrinkWrap: true,
@@ -998,18 +1201,44 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(ad.imageUrl, width: 74, height: 52, fit: BoxFit.cover),
+                        child: Image.network(
+                          ad.imageUrl,
+                          width: 74,
+                          height: 52,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(ad.title, style: const TextStyle(color: CinemaTheme.textPrimary, fontWeight: FontWeight.w800)),
+                            Text(
+                              ad.title,
+                              style: const TextStyle(
+                                color: CinemaTheme.textPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text(ad.linkUrl.isEmpty ? 'No link' : ad.linkUrl, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                            Text(
+                              ad.linkUrl.isEmpty ? 'No link' : ad.linkUrl,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: CinemaTheme.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text('Sort ${ad.sortOrder}', style: const TextStyle(color: CinemaTheme.accent, fontSize: 12, fontWeight: FontWeight.w700)),
+                            Text(
+                              'Sort ${ad.sortOrder}',
+                              style: const TextStyle(
+                                color: CinemaTheme.accent,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -1020,13 +1249,22 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
                             await deleteAdvertisement(ad.id);
                             if (!mounted) return;
                             _refresh();
-                            messenger.showSnackBar(const SnackBar(content: Text('Ad deleted')));
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Ad deleted')),
+                            );
                           } catch (error) {
                             if (!mounted) return;
-                            messenger.showSnackBar(SnackBar(content: Text('Failed to delete ad: $error')));
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to delete ad: $error'),
+                              ),
+                            );
                           }
                         },
-                        icon: const Icon(Icons.delete_outline_rounded, color: CinemaTheme.danger),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: CinemaTheme.danger,
+                        ),
                       ),
                     ],
                   ),
@@ -1043,5 +1281,35 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
 class SettingsPage extends StatelessWidget {
   final String userName;
   const SettingsPage({super.key, required this.userName});
-  @override Widget build(BuildContext context) => Scaffold(body: cinemaBackdrop(child: SafeArea(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [cinemaSectionTitle('Settings', subtitle: userName), const Spacer(), SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage())), icon: const Icon(Icons.logout_rounded), label: const Text('Logout'), style: FilledButton.styleFrom(backgroundColor: CinemaTheme.danger, foregroundColor: Colors.white))) ])))));
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: cinemaBackdrop(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              cinemaSectionTitle('Settings', subtitle: userName),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  ),
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Logout'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: CinemaTheme.danger,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }

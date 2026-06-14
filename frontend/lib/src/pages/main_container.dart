@@ -70,6 +70,7 @@ class _MainContainerState extends State<MainContainer> {
       });
     }
   }
+
   void _goToTicket() {
     setState(() => _idx = 2);
     _ticketKey.currentState?.refresh();
@@ -110,15 +111,6 @@ class _MainContainerState extends State<MainContainer> {
         movieError: _movieError,
         onRetryMovies: _loadMovies,
         onBookNow: _openBooking,
-        onOpenNotifications: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => NotificationsPage(
-              userId: widget.userId,
-              role: widget.role,
-            ),
-          ),
-        ),
       ),
       SearchPage(
         userId: widget.userId,
@@ -131,15 +123,6 @@ class _MainContainerState extends State<MainContainer> {
         userName: widget.userName,
         email: widget.email,
         role: widget.role,
-        onOpenNotifications: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => NotificationsPage(
-              userId: widget.userId,
-              role: widget.role,
-            ),
-          ),
-        ),
         onOpenHistory: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -154,11 +137,11 @@ class _MainContainerState extends State<MainContainer> {
         ),
         onOpenAdmin: widget.role.toLowerCase() == 'admin'
             ? () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AdminPanelPage(userId: widget.userId),
-                  ),
-                )
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AdminPanelPage(userId: widget.userId),
+                ),
+              )
             : null,
       ),
     ];
@@ -208,6 +191,3 @@ class _MainContainerState extends State<MainContainer> {
     );
   }
 }
-
-
-

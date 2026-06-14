@@ -6,11 +6,15 @@ import cinema.model.Seat;
 import cinema.repository.MovieRepository;
 import cinema.repository.ScheduleRepository;
 import cinema.repository.SeatRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -25,6 +29,9 @@ public class AdminController {
 
     @Autowired
     private SeatRepository seatRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @GetMapping("/movies")
     public List<Movie> getMovies() {
@@ -56,10 +63,88 @@ public class AdminController {
     }
 
     @DeleteMapping("/movies/{id}")
+    @Transactional
     public ResponseEntity<?> deleteMovie(@PathVariable int id) {
-        scheduleRepository.deleteByMovie_Id(id);
+        if (!movieRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        entityManager.createNativeQuery("""
+                DELETE FROM transactions
+                WHERE booking_id IN (
+                    SELECT b.id
+                    FROM bookings b
+                    JOIN schedules s ON s.schedule_id = b.schedule_id
+                    WHERE s.movie_id = :movieId
+                )
+                """)
+                .setParameter("movieId", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("""
+                DELETE FROM tickets
+                WHERE booking_id IN (
+                    SELECT b.id
+                    FROM bookings b
+                    JOIN schedules s ON s.schedule_id = b.schedule_id
+                    WHERE s.movie_id = :movieId
+                )
+                OR seat_id IN (
+                    SELECT seats.id
+                    FROM seats
+                    JOIN schedules s ON s.schedule_id = seats.schedule_id
+                    WHERE s.movie_id = :movieId
+                )
+                """)
+                .setParameter("movieId", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("""
+                DELETE FROM booking_seats
+                WHERE booking_id IN (
+                    SELECT b.id
+                    FROM bookings b
+                    JOIN schedules s ON s.schedule_id = b.schedule_id
+                    WHERE s.movie_id = :movieId
+                )
+                OR seat_id IN (
+                    SELECT seats.id
+                    FROM seats
+                    JOIN schedules s ON s.schedule_id = seats.schedule_id
+                    WHERE s.movie_id = :movieId
+                )
+                """)
+                .setParameter("movieId", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("""
+                DELETE FROM bookings
+                WHERE schedule_id IN (
+                    SELECT schedule_id
+                    FROM schedules
+                    WHERE movie_id = :movieId
+                )
+                """)
+                .setParameter("movieId", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("""
+                DELETE FROM seats
+                WHERE schedule_id IN (
+                    SELECT schedule_id
+                    FROM schedules
+                    WHERE movie_id = :movieId
+                )
+                """)
+                .setParameter("movieId", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM schedules WHERE movie_id = :movieId")
+                .setParameter("movieId", id)
+                .executeUpdate();
+
         movieRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("message", "Movie deleted"));
     }
 
     @GetMapping("/schedules")

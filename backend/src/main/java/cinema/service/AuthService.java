@@ -24,7 +24,11 @@ public class AuthService {
     }
 
     public User login(String email, String password) {
-        Optional<User> user = userRepository.findByEmail(email);
+        String identifier = email == null ? "" : email.trim();
+        Optional<User> user = userRepository.findByEmailIgnoreCase(identifier);
+        if (user.isEmpty()) {
+            user = userRepository.findByNameIgnoreCase(identifier);
+        }
         if (user.isPresent() && user.get().getPassword().equals(password)) {
             return user.get();
         }
@@ -70,4 +74,3 @@ public class AuthService {
         userRepository.save(user);
     }
 }
-
