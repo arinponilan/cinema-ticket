@@ -337,7 +337,7 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                                 ),
                                 const SizedBox(height: 12),
                                 SizedBox(
-                                  height: 245,
+                                  height: 260,
                                   child: ListView.separated(
                                     scrollDirection: Axis.horizontal,
                                     itemCount: nowShowing.isEmpty
