@@ -190,7 +190,7 @@ class _AdminShellPageState extends State<AdminShellPage> {
             NavigationDestination(
               icon: Icon(Icons.campaign_outlined),
               selectedIcon: Icon(Icons.campaign_rounded),
-              label: 'Promo',
+              label: 'Iklan',
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline_rounded),
