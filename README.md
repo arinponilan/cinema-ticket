@@ -60,7 +60,7 @@ cd cinema-ticket
 
 Pastikan perangkat sudah terinstall:
 
-- Java JDK 21
+- Java JDK 17
 - Maven
 - Flutter SDK
 - PostgreSQL atau Supabase
