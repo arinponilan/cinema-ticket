@@ -19,6 +19,7 @@ public class Schedule {
     private String date;
 
     private String time;
+    private String endTime;
 
     private String hall;
 
@@ -58,6 +59,9 @@ public class Schedule {
 
     public String getTime() { return time; }
     public void setTime(String time) { this.time = time; }
+
+    public String getEndTime() { return endTime; }
+    public void setEndTime(String endTime) { this.endTime = endTime; }
 
     public String getHall() { return hall; }
     public void setHall(String hall) { this.hall = hall; }

@@ -2,7 +2,7 @@ package cinema.service;
 
 import cinema.dto.BookingRequest;
 import cinema.model.*;
-import cinema.payment.EWalletPayment;
+import cinema.payment.VirtualAccountPayment;
 import cinema.payment.Payment;
 import cinema.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ public class BookingService {
         List<Seat> seats = new ArrayList<>();
         if (request.getSeatIds() != null && !request.getSeatIds().isEmpty()) {
             for (Integer seatId : request.getSeatIds()) {
-                Seat seat = seatRepository.findById(seatId)
+                Seat seat = seatRepository.findByIdForUpdate(seatId)
                         .orElseThrow(() -> new RuntimeException("Kursi ID " + seatId + " tidak ditemukan"));
                 if (seat.getSchedule() == null || seat.getSchedule().getScheduleId() != schedule.getScheduleId()) {
                     throw new RuntimeException("Kursi " + seat.getSeatNumber() + " bukan bagian dari jadwal ini");
@@ -49,7 +49,7 @@ public class BookingService {
             }
         } else if (request.getSeatNumbers() != null && !request.getSeatNumbers().isEmpty()) {
             for (String seatNumber : request.getSeatNumbers()) {
-                Seat seat = seatRepository.findByScheduleAndSeatNumber(schedule, seatNumber);
+                Seat seat = seatRepository.findByScheduleAndSeatNumberForUpdate(schedule, seatNumber);
                 if (seat == null) {
                     throw new RuntimeException("Kursi " + seatNumber + " tidak ditemukan untuk jadwal ini");
                 }
@@ -68,7 +68,7 @@ public class BookingService {
 
         String walletType = request.getWalletType() != null && !request.getWalletType().isBlank()
                 ? request.getWalletType()
-                : "E-Wallet";
+                : "Virtual Account";
         String phoneNumber = request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()
                 ? request.getPhoneNumber()
                 : user.getEmail();
@@ -76,12 +76,12 @@ public class BookingService {
                 ? request.getWalletBalance()
                 : totalPrice;
 
-        Payment payment = new EWalletPayment(walletType, phoneNumber, walletBalance);
+        Payment payment = new VirtualAccountPayment(walletType, phoneNumber, walletBalance);
         if (!payment.validate()) {
-            throw new RuntimeException("Data e-wallet tidak valid");
+            throw new RuntimeException("Data Virtual Account tidak valid");
         }
         if (!payment.pay(totalPrice)) {
-            throw new RuntimeException("Saldo e-wallet tidak cukup");
+            throw new RuntimeException("Saldo Virtual Account tidak cukup");
         }
 
         // 5. Buat Booking

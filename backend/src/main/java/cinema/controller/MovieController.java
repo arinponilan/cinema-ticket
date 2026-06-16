@@ -38,6 +38,24 @@ public class MovieController {
         return ResponseEntity.ok(saved);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMovie(@PathVariable int id, @RequestBody Movie updatedMovie) {
+        return movieRepository.findById(id)
+                .map(movie -> {
+                    movie.setTitle(updatedMovie.getTitle());
+                    movie.setCode(updatedMovie.getCode());
+                    movie.setGenre(updatedMovie.getGenre());
+                    movie.setDuration(updatedMovie.getDuration());
+                    movie.setSynopsis(updatedMovie.getSynopsis());
+                    movie.setPrice(updatedMovie.getPrice());
+                    movie.setImageUrl(updatedMovie.getImageUrl());
+                    applyDefaultImage(movie);
+                    Movie saved = movieRepository.save(movie);
+                    return ResponseEntity.ok(saved);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     private void applyDefaultImage(Movie movie) {
         if (movie.getImageUrl() == null || movie.getImageUrl().isBlank()) {
             String fallback = DEFAULT_IMAGE_URLS.get(movie.getTitle());

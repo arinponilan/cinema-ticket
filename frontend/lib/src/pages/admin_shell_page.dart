@@ -139,6 +139,7 @@ class _AdminShellPageState extends State<AdminShellPage> {
           final result = await _showPopup(_MoviePopup(onPickImage: _pickAndUpload));
           if (result == true) {
             _refreshAdminData();
+            setState(() => _index = 1);
           }
         },
         onDataChanged: _refreshAdminData,
@@ -1250,10 +1251,10 @@ class _MoviePopupState extends State<_MoviePopup> {
   String _status = 'Sedang Tayang';
 
   bool _enableAutoSchedule = true;
-  String _startDate = DateTime.now().add(const Duration(days: 1)).toString().split(' ')[0];
-  String _endDate = DateTime.now().add(const Duration(days: 7)).toString().split(' ')[0];
+  String _startDate = DateTime.now().toString().split(' ')[0];
+  String _endDate = DateTime.now().toString().split(' ')[0];
   String _scheduleHall = 'Studio 1';
-  final Set<String> _selectedTimes = {'10:00:00', '13:00:00', '16:00:00', '19:00:00', '22:00:00'};
+  final Set<String> _selectedTimes = {'10:00:00'};
   final List<String> _timeOptions = ['10:00:00', '13:00:00', '16:00:00', '19:00:00', '22:00:00'];
   bool _isSaving = false;
 
@@ -1640,14 +1641,7 @@ class _MoviePopupState extends State<_MoviePopup> {
                             status: _status,
                           );
 
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Film berhasil disimpan')),
-                            );
-                            Navigator.pop(context, true);
-                          }
-
-                          // Jalankan pembuatan jadwal di background setelah popup ditutup
+                          // Jalankan pembuatan jadwal secara synchronous sebelum popup ditutup
                           if (widget.movie == null && _enableAutoSchedule && _selectedTimes.isNotEmpty) {
                             final movieId = savedMovie.id;
                             final hall = _scheduleHall;
@@ -1655,23 +1649,28 @@ class _MoviePopupState extends State<_MoviePopup> {
                             final startDate = DateTime.tryParse(_startDate) ?? DateTime.now();
                             final endDate = DateTime.tryParse(_endDate) ?? startDate;
 
-                            Future(() async {
-                              for (DateTime d = startDate; d.isBefore(endDate.add(const Duration(days: 1))); d = d.add(const Duration(days: 1))) {
-                                final dateStr = d.toString().split(' ')[0];
-                                for (final time in times) {
-                                  try {
-                                    await saveAdminSchedule(
-                                      movieId: movieId,
-                                      date: dateStr,
-                                      time: time,
-                                      hall: hall,
-                                    );
-                                  } catch (e) {
-                                    debugPrint('Gagal buat jadwal otomatis: $e');
-                                  }
+                            for (DateTime d = startDate; d.isBefore(endDate.add(const Duration(days: 1))); d = d.add(const Duration(days: 1))) {
+                              final dateStr = d.toString().split(' ')[0];
+                              for (final time in times) {
+                                try {
+                                  await saveAdminSchedule(
+                                    movieId: movieId,
+                                    date: dateStr,
+                                    time: time,
+                                    hall: hall,
+                                  );
+                                } catch (e) {
+                                  debugPrint('Gagal buat jadwal otomatis: $e');
                                 }
                               }
-                            });
+                            }
+                          }
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Film berhasil disimpan')),
+                            );
+                            Navigator.pop(context, true);
                           }
                         } catch (error) {
                           if (!context.mounted) return;
@@ -1895,7 +1894,7 @@ class _SchedulePopupState extends State<_SchedulePopup> {
       _hall = parsedHall;
       
       _selectedMovie = widget.movies.cast<MovieData?>().firstWhere(
-        (m) => m?.title == widget.editingSchedule!.type,
+        (m) => m?.title == widget.editingSchedule!.movieTitle,
         orElse: () => null,
       );
     }
