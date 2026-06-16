@@ -824,8 +824,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              widget.movie.imgUrl,
+                            child: Image.network(widget.movie.imgUrl, headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}, 
                               width: 72,
                               height: 96,
                               fit: BoxFit.cover,
@@ -1163,7 +1162,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    const methodLabel = 'E-Wallet';
+    const methodLabel = 'Virtual Account';
 
     showDialog(
       context: context,

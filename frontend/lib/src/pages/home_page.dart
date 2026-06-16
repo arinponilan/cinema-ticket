@@ -32,10 +32,10 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nowShowing = movies
-        .where((movie) => !movie.status.toLowerCase().contains('coming'))
+        .where((movie) => !movie.status.toLowerCase().contains('coming') && !movie.status.toLowerCase().contains('segera') && !movie.status.toLowerCase().contains('akan'))
         .toList();
     final comingSoon = movies
-        .where((movie) => movie.status.toLowerCase().contains('coming'))
+        .where((movie) => movie.status.toLowerCase().contains('coming') || movie.status.toLowerCase().contains('segera') || movie.status.toLowerCase().contains('akan'))
         .toList();
 
     return Scaffold(

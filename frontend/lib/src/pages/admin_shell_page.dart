@@ -233,7 +233,9 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
   void didUpdateWidget(covariant _AdminMovieHub oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.refreshToken != widget.refreshToken) {
-      _moviesFuture = fetchAdminMovies();
+      setState(() {
+        _moviesFuture = fetchAdminMovies();
+      });
     }
   }
 
@@ -300,13 +302,13 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
                       final nowShowing = movies
                           .where(
                             (movie) =>
-                                movie.status.toLowerCase() == 'now showing',
+                                !movie.status.toLowerCase().contains('coming') && !movie.status.toLowerCase().contains('segera') && !movie.status.toLowerCase().contains('akan'),
                           )
                           .toList();
                       final comingSoon = movies
                           .where(
                             (movie) =>
-                                movie.status.toLowerCase() == 'coming soon',
+                                movie.status.toLowerCase().contains('coming') || movie.status.toLowerCase().contains('segera') || movie.status.toLowerCase().contains('akan'),
                           )
                           .toList();
 
@@ -481,8 +483,7 @@ class _AdminMovieCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            child: Image.network(
-              movie.imgUrl,
+            child: Image.network(movie.imgUrl, headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}, 
               height: 140,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -584,8 +585,7 @@ class _AdminMovieListTile extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: Image.network(
-              movie.imgUrl,
+            child: Image.network(movie.imgUrl, headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}, 
               width: 56,
               height: 72,
               fit: BoxFit.cover,
@@ -686,8 +686,10 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
   void didUpdateWidget(covariant _AdminScheduleHub oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.refreshToken != widget.refreshToken) {
-      _moviesFuture = fetchAdminMovies();
-      _schedulesFuture = fetchAdminSchedules();
+      setState(() {
+        _moviesFuture = fetchAdminMovies();
+        _schedulesFuture = fetchAdminSchedules();
+      });
     }
   }
 
@@ -992,8 +994,7 @@ class _AdminAdsNotifHubState extends State<_AdminAdsNotifHub> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    ad.imageUrl,
+                                  child: Image.network(ad.imageUrl, headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}, 
                                     width: double.infinity,
                                     height: 120,
                                     fit: BoxFit.cover,
@@ -1254,6 +1255,7 @@ class _MoviePopupState extends State<_MoviePopup> {
   String _scheduleHall = 'Studio 1';
   final Set<String> _selectedTimes = {'10:00:00', '13:00:00', '16:00:00', '19:00:00', '22:00:00'};
   final List<String> _timeOptions = ['10:00:00', '13:00:00', '16:00:00', '19:00:00', '22:00:00'];
+  bool _isSaving = false;
 
   Future<void> _pickDate(bool isStart) async {
     final initial = DateTime.tryParse(isStart ? _startDate : _endDate) ?? DateTime.now();
@@ -1413,8 +1415,7 @@ class _MoviePopupState extends State<_MoviePopup> {
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _poster.text,
+                      child: Image.network(_poster.text, headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}, 
                         height: 180,
                         width: 120,
                         fit: BoxFit.cover,
@@ -1433,19 +1434,19 @@ class _MoviePopupState extends State<_MoviePopup> {
                   ],
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    initialValue: _status,
+                    initialValue: _status == 'Segera Tayang' || _status == 'Akan Datang' ? 'Coming Soon' : (_status == 'Sedang Tayang' ? 'Now Showing' : _status),
                     items: const [
                       DropdownMenuItem(
-                        value: 'Sedang Tayang',
+                        value: 'Now Showing',
                         child: Text('Sedang Tayang'),
                       ),
                       DropdownMenuItem(
-                        value: 'Segera Tayang',
+                        value: 'Coming Soon',
                         child: Text('Akan Datang'),
                       ),
                     ],
                     onChanged: (value) =>
-                        setState(() => _status = value ?? 'Sedang Tayang'),
+                        setState(() => _status = value ?? 'Now Showing'),
                     decoration: const InputDecoration(labelText: 'Status'),
                   ),
                   const SizedBox(height: 16),
@@ -1583,15 +1584,19 @@ class _MoviePopupState extends State<_MoviePopup> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () async {
-                        if (_poster.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Gambar poster wajib diisi'),
-                            ),
-                          );
-                          return;
-                        }
+                        if (_isSaving) return;
+                        setState(() => _isSaving = true);
                         try {
+                          if (_poster.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Gambar poster wajib diisi'),
+                              ),
+                            );
+                            setState(() => _isSaving = false);
+                            return;
+                          }
+                          
                           // Validasi conflict sebelum simpan jika jadwal otomatis aktif
                           if (widget.movie == null && _enableAutoSchedule && _selectedTimes.isNotEmpty) {
                             final latestSchedules = await fetchAdminSchedules();
@@ -1618,6 +1623,7 @@ class _MoviePopupState extends State<_MoviePopup> {
                                   backgroundColor: Colors.red,
                                 ),
                               );
+                              setState(() => _isSaving = false);
                               return;
                             }
                           }
@@ -1674,13 +1680,15 @@ class _MoviePopupState extends State<_MoviePopup> {
                               content: Text('Gagal menyimpan film: $error'),
                             ),
                           );
+                        } finally {
+                          if (mounted) setState(() => _isSaving = false);
                         }
                       },
                       style: FilledButton.styleFrom(
                         backgroundColor: CinemaTheme.accent,
                         foregroundColor: Colors.black,
                       ),
-                      child: const Text('Simpan Film'),
+                      child: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Simpan Film'),
                     ),
                   ),
                 ],
@@ -1781,8 +1789,7 @@ class _AdsPopupState extends State<_AdsPopup> {
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _image.text,
+                      child: Image.network(_image.text, headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}, 
                         height: 120,
                         width: double.infinity,
                         fit: BoxFit.cover,

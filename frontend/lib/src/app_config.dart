@@ -7,6 +7,6 @@ String get apiBaseUrl {
   }
 
   return defaultTargetPlatform == TargetPlatform.android
-      ? 'http://10.0.2.2:8081'
-      : 'http://localhost:8081';
+      ? 'http://10.0.2.2:8082'
+      : 'http://localhost:8082';
 }

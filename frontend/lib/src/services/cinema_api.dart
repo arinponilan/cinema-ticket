@@ -65,7 +65,7 @@ Future<Map<String, dynamic>> createBooking({
   required int userId,
   required int scheduleId,
   required List<int> seatIds,
-  String walletType = 'E-Wallet',
+  String walletType = 'Virtual Account',
   String phoneNumber = '080000000000',
   double? walletBalance,
 }) async {
