@@ -20,7 +20,7 @@ class MovieData {
     this.duration = 0,
     this.synopsis = '',
     this.price = 0,
-    this.status = 'Now Showing',
+    this.status = 'Sedang Tayang',
     this.code,
   });
 
@@ -33,7 +33,7 @@ class MovieData {
       duration: intValue(json['duration']),
       synopsis: (json['synopsis'] ?? '').toString(),
       price: doubleValue(json['price']),
-      status: (json['status'] ?? json['movieStatus'] ?? 'Now Showing')
+      status: (json['status'] ?? json['movieStatus'] ?? 'Sedang Tayang')
           .toString(),
       code: json['code']?.toString(),
     );
@@ -78,6 +78,7 @@ class ScheduleSlot {
   final String date;
   final String hall;
   final String type;
+  final String movieTitle;
   final Set<String> bookedSeats;
 
   ScheduleSlot({
@@ -87,6 +88,7 @@ class ScheduleSlot {
     this.date = '',
     required this.hall,
     required this.type,
+    this.movieTitle = '',
     required this.bookedSeats,
   });
 
@@ -100,6 +102,7 @@ class ScheduleSlot {
       date: (json['date'] ?? '').toString(),
       hall: (json['hall'] ?? json['studio'] ?? 'Hall 1').toString(),
       type: (json['type'] ?? json['format'] ?? 'Reguler 2D').toString(),
+      movieTitle: json['movie'] != null ? (json['movie']['title'] ?? '').toString() : '',
       bookedSeats: const <String>{},
     );
   }
@@ -109,7 +112,7 @@ class ScheduleSlot {
   int get availableCount => totalSeats - bookedCount;
 
   String get availabilityLabel {
-    if (availableCount < 15) return 'Almost full';
+    if (availableCount < 15) return 'Hampir penuh';
     if (availableCount < 40) return '$availableCount seats left';
     return '$availableCount seats available';
   }

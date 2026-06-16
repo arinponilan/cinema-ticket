@@ -149,7 +149,11 @@ class _AdminShellPageState extends State<AdminShellPage> {
         onDataChanged: _refreshAdminData,
       ),
       _AdminAdsNotifHub(
-        onAddAds: () => _showPopup(_AdsPopup(onPickImage: _pickAndUpload)),
+        onAddAds: ([ad]) async {
+          await _showPopup(_AdsPopup(onPickImage: _pickAndUpload, ad: ad));
+          // Trigger a refresh from inside _AdminAdsNotifHub using a key if needed, or better, pass the refresh callback. Wait, the easiest is to just use a stream or let _AdminAdsNotifHub handle the popup itself.
+          // Wait, I can pass _pickAndUpload to _AdminAdsNotifHub instead.
+        },
       ),
       _AdminProfileHub(
         userName: widget.userName,
@@ -251,56 +255,22 @@ class _AdminMovieHubState extends State<_AdminMovieHub> {
               children: [
                 cinemaSectionTitle('Film', subtitle: 'Kelola katalog film'),
                 const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () async {
-                    await widget.onAddMovie();
-                    widget.onDataChanged();
-                    _refresh();
-                  },
-                  child: cinemaCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            color: CinemaTheme.accent.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.add_rounded,
-                            color: CinemaTheme.accent,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tambah Film',
-                                style: TextStyle(
-                                  color: CinemaTheme.textPrimary,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Buka popup untuk membuat film baru',
-                                style: TextStyle(
-                                  color: CinemaTheme.textSecondary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: CinemaTheme.textSecondary,
-                        ),
-                      ],
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      await widget.onAddMovie();
+                      widget.onDataChanged();
+                      _refresh();
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: CinemaTheme.accent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    icon: const Icon(Icons.add_circle_outline_rounded, size: 28),
+                    label: const Text('Tambah Film', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -705,33 +675,9 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
   late Future<List<MovieData>> _moviesFuture;
   late Future<List<ScheduleSlot>> _schedulesFuture;
 
-  MovieData? _selectedMovie;
-  String _scheduleDate = DateTime.now().add(const Duration(days: 1)).toString().split(' ')[0];
-  String _scheduleTime = '10:00:00';
-  String _hall = 'Studio 1';
-  int? _editingScheduleId;
-
-  final List<String> _timeOptions = ['10:00:00', '13:00:00', '16:00:00', '19:00:00', '22:00:00'];
-
-  Future<void> _pickDate() async {
-    final initial = DateTime.tryParse(_scheduleDate) ?? DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime.now().subtract(const Duration(days: 10)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null) {
-      setState(() {
-        _scheduleDate = picked.toString().split(' ')[0];
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-
     _moviesFuture = fetchAdminMovies();
     _schedulesFuture = fetchAdminSchedules();
   }
@@ -757,26 +703,24 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
     super.dispose();
   }
 
-  void _editSchedule(ScheduleSlot schedule, List<MovieData> movies) {
-    setState(() {
-      _editingScheduleId = schedule.id;
-      _scheduleDate = schedule.date;
-      _scheduleTime = schedule.time;
-      
-      String parsedHall = schedule.hall.replaceAll('Hall', 'Studio');
-      if (!List.generate(5, (i) => 'Studio ${i + 1}').contains(parsedHall)) {
-        parsedHall = 'Studio 1';
-      }
-      _hall = parsedHall;
-      _selectedMovie = movies.cast<MovieData?>().firstWhere(
-            (m) => m?.title == schedule.type, 
-            orElse: () => null,
-          );
-      // Wait, type stores movie title? No, type was used as movie title in backend? 
-      // Actually we need to match movie title from the movie list based on some property.
-      // Wait, backend Schedule doesn't return movie? Oh, it returns movie! But ScheduleSlot might just have 'type'.
-      // Let me re-verify ScheduleSlot in models.
-    });
+  Future<void> _openSchedulePopup([ScheduleSlot? schedule]) async {
+    final movies = await _moviesFuture;
+    final schedules = await _schedulesFuture;
+    if (!mounted) return;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => _SchedulePopup(
+        movies: movies,
+        schedules: schedules,
+        editingSchedule: schedule,
+      ),
+    );
+
+    if (result == true) {
+      widget.onDataChanged();
+      _refresh();
+    }
   }
 
   Future<void> _deleteSchedule(int id) async {
@@ -807,191 +751,21 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                   subtitle: 'Atur jadwal film ke studio dan jam tayang',
                 ),
                 const SizedBox(height: 16),
-                cinemaCard(
-                  child: FutureBuilder<List<MovieData>>(
-                    future: _moviesFuture,
-                    builder: (context, snap) {
-                      final movies = snap.data ?? const <MovieData>[];
-                      
-                      // Pastikan referensi objek _selectedMovie sesuai dengan data terbaru dari API
-                      MovieData? currentMovie = movies.cast<MovieData?>().firstWhere(
-                            (m) => m?.id == _selectedMovie?.id,
-                            orElse: () => null,
-                          );
-
-                      return Column(
-                        children: [
-                          DropdownButtonFormField<MovieData>(
-                            key: ValueKey(widget.refreshToken),
-                            value: currentMovie,
-                            decoration: const InputDecoration(
-                              labelText: 'Pilih film',
-                            ),
-                            items: movies
-                                .map(
-                                  (movie) => DropdownMenuItem<MovieData>(
-                                    value: movie,
-                                    child: Text(movie.title),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (movie) =>
-                                setState(() => _selectedMovie = movie),
-                          ),
-                          const SizedBox(height: 12),
-                          InkWell(
-                            onTap: _pickDate,
-                            child: InputDecorator(
-                              decoration: const InputDecoration(labelText: 'Tanggal Tayang (YYYY-MM-DD)'),
-                              child: Text(_scheduleDate, style: const TextStyle(fontWeight: FontWeight.bold, color: CinemaTheme.textPrimary)),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                            value: _hall,
-                            decoration: const InputDecoration(
-                              labelText: 'Studio',
-                            ),
-                            items: List.generate(5, (index) => 'Studio ${index + 1}')
-                                .map((studio) => DropdownMenuItem(
-                                      value: studio,
-                                      child: Text(studio),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _hall = value);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          const Text('Waktu Tayang', style: TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
-                          const SizedBox(height: 8),
-                          FutureBuilder<List<ScheduleSlot>>(
-                            future: _schedulesFuture,
-                            builder: (context, scheduleSnap) {
-                              final schedules = scheduleSnap.data ?? [];
-                              // Temukan slot yang sudah terisi di tanggal dan studio ini
-                              final takenTimes = schedules
-                                  .where((s) => s.date == _scheduleDate && s.hall == _hall && s.id != _editingScheduleId)
-                                  .map((s) => s.time)
-                                  .toSet();
-
-                              return Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _timeOptions.map((time) {
-                                  final isTaken = takenTimes.contains(time);
-                                  final isSelected = _scheduleTime == time;
-                                  return ChoiceChip(
-                                    label: Text(time.substring(0, 5)),
-                                    selected: isSelected,
-                                    onSelected: isTaken ? null : (selected) {
-                                      if (selected) setState(() => _scheduleTime = time);
-                                    },
-                                    selectedColor: CinemaTheme.accent,
-                                    labelStyle: TextStyle(
-                                      color: isTaken ? CinemaTheme.textSecondary : (isSelected ? Colors.black : CinemaTheme.textPrimary),
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                    backgroundColor: isTaken ? CinemaTheme.cardAlt.withValues(alpha: 0.5) : CinemaTheme.bg,
-                                  );
-                                }).toList(),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                            value: _hall,
-                            decoration: const InputDecoration(
-                              labelText: 'Studio',
-                            ),
-                            items: List.generate(5, (index) => 'Studio ${index + 1}')
-                                .map((studio) => DropdownMenuItem(
-                                      value: studio,
-                                      child: Text(studio),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _hall = value);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: FilledButton(
-                                  onPressed: () async {
-                                    if (_selectedMovie == null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Silakan pilih film'),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    try {
-                                      await saveAdminSchedule(
-                                        id: _editingScheduleId,
-                                        movieId: _selectedMovie!.id,
-                                        date: _scheduleDate,
-                                        time: _scheduleTime,
-                                        hall: _hall,
-                                      );
-                                      setState(() {
-                                        _selectedMovie = null;
-                                        _scheduleTime = '10:00:00';
-                                        _hall = 'Studio 1';
-                                        _editingScheduleId = null;
-                                      });
-                                      widget.onDataChanged();
-                                      _refresh();
-                                    } catch (error) {
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Gagal menyimpan jadwal: $error',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: CinemaTheme.accent,
-                                    foregroundColor: Colors.black,
-                                  ),
-                                  child: Text(_editingScheduleId == null ? 'Simpan Jadwal' : 'Perbarui Jadwal'),
-                                ),
-                              ),
-                              if (_editingScheduleId != null) ...[
-                                const SizedBox(width: 8),
-                                OutlinedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedMovie = null;
-                                      // _date.clear();
-                                      _scheduleTime = '10:00:00';
-                                      _hall = 'Studio 1';
-                                      _editingScheduleId = null;
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: CinemaTheme.textPrimary,
-                                  ),
-                                  child: const Text('Batal'),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      );
-                    },
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: FilledButton.icon(
+                    onPressed: _openSchedulePopup,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: CinemaTheme.accent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline_rounded, size: 28),
+                    label: const Text('Tambah Jadwal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Expanded(
                   child: FutureBuilder<List<ScheduleSlot>>(
                     future: _schedulesFuture,
@@ -1045,7 +819,7 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        schedule.type.isNotEmpty ? schedule.type : 'Schedule #${schedule.id}',
+                                        schedule.movieTitle.isNotEmpty ? '${schedule.movieTitle} (${schedule.type})' : schedule.type,
                                         style: const TextStyle(
                                           color: CinemaTheme.textPrimary,
                                           fontWeight: FontWeight.w800,
@@ -1053,7 +827,9 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${schedule.date} • ${schedule.time} - ${schedule.endTime ?? '??:??'}',
+                                        schedule.endTime != null 
+                                            ? '${schedule.date} • ${schedule.time} - ${schedule.endTime}'
+                                            : '${schedule.date} • ${schedule.time}',
                                         style: const TextStyle(
                                           color: CinemaTheme.textSecondary,
                                         ),
@@ -1070,21 +846,7 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
                                   ),
                                 ),
                                 IconButton(
-                                  onPressed: () {
-                                    // Let's populate the edit form
-                                    _moviesFuture.then((movies) {
-                                      setState(() {
-                                        _editingScheduleId = schedule.id;
-                                        _scheduleDate = schedule.date;
-                                        _scheduleTime = schedule.time;
-                                        _hall = schedule.hall;
-                                        _selectedMovie = movies.cast<MovieData?>().firstWhere(
-                                              (m) => m?.title == schedule.type, 
-                                              orElse: () => null,
-                                            );
-                                      });
-                                    });
-                                  },
+                                  onPressed: () => _openSchedulePopup(schedule),
                                   icon: const Icon(
                                     Icons.edit_rounded,
                                     color: CinemaTheme.accent,
@@ -1114,10 +876,55 @@ class _AdminScheduleHubState extends State<_AdminScheduleHub> {
   }
 }
 
-class _AdminAdsNotifHub extends StatelessWidget {
-  final VoidCallback onAddAds;
+class _AdminAdsNotifHub extends StatefulWidget {
+  final Future<void> Function([PromotionItem? ad]) onAddAds;
 
   const _AdminAdsNotifHub({required this.onAddAds});
+
+  @override
+  State<_AdminAdsNotifHub> createState() => _AdminAdsNotifHubState();
+}
+
+class _AdminAdsNotifHubState extends State<_AdminAdsNotifHub> {
+  Future<List<PromotionItem>>? _adsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  void _refresh() {
+    setState(() {
+      _adsFuture = fetchPromotions();
+    });
+  }
+
+  Future<void> _delete(int id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CinemaTheme.card,
+        title: const Text('Hapus Iklan', style: TextStyle(color: Colors.white)),
+        content: const Text('Yakin ingin menghapus iklan ini?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus', style: TextStyle(color: Colors.redAccent))),
+        ],
+      ),
+    );
+    
+    if (confirm != true) return;
+
+    try {
+      await deleteAdvertisement(id);
+      _refresh();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete ad: $e')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1131,26 +938,103 @@ class _AdminAdsNotifHub extends StatelessWidget {
               children: [
                 cinemaSectionTitle('Ads', subtitle: 'Manage banners'),
                 const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: onAddAds,
-                  child: cinemaCard(
-                    child: const Column(
-                      children: [
-                        Icon(
-                          Icons.campaign_rounded,
-                          color: CinemaTheme.accent,
-                          size: 34,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Ads',
-                          style: TextStyle(
-                            color: CinemaTheme.textPrimary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      await widget.onAddAds();
+                      _refresh();
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: CinemaTheme.accent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    icon: const Icon(Icons.add_photo_alternate_rounded, size: 28),
+                    label: const Text('Tambah Iklan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Active Banners',
+                  style: TextStyle(
+                    color: CinemaTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: FutureBuilder<List<PromotionItem>>(
+                    future: _adsFuture,
+                    builder: (context, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snap.hasError) {
+                        return Center(child: Text('Error: ${snap.error}', style: const TextStyle(color: Colors.redAccent)));
+                      }
+                      
+                      final ads = snap.data ?? [];
+                      if (ads.isEmpty) {
+                        return const Center(child: Text('Tidak ada banner', style: TextStyle(color: CinemaTheme.textSecondary)));
+                      }
+
+                      return ListView.separated(
+                        itemCount: ads.length > 5 ? 5 : ads.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final ad = ads[index];
+                          return cinemaCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    ad.imageUrl,
+                                    width: double.infinity,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      height: 120,
+                                      color: CinemaTheme.cardAlt,
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.broken_image, color: CinemaTheme.textSecondary, size: 40),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        ad.title,
+                                        style: const TextStyle(color: CinemaTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_rounded, color: Colors.blueAccent),
+                                      onPressed: () async {
+                                        await widget.onAddAds(ad);
+                                        _refresh();
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_rounded, color: Colors.redAccent),
+                                      onPressed: () => _delete(ad.id),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
               ],
@@ -1362,7 +1246,7 @@ class _MoviePopupState extends State<_MoviePopup> {
   final _synopsis = TextEditingController();
   final _price = TextEditingController();
   final _poster = TextEditingController();
-  String _status = 'Now Showing';
+  String _status = 'Sedang Tayang';
 
   bool _enableAutoSchedule = true;
   String _startDate = DateTime.now().add(const Duration(days: 1)).toString().split(' ')[0];
@@ -1403,7 +1287,7 @@ class _MoviePopupState extends State<_MoviePopup> {
       _synopsis.text = widget.movie!.synopsis;
       _price.text = widget.movie!.price.toInt().toString();
       _poster.text = widget.movie!.imgUrl;
-      _status = widget.movie!.status.isNotEmpty ? widget.movie!.status : 'Now Showing';
+      _status = widget.movie!.status.isNotEmpty ? widget.movie!.status : 'Sedang Tayang';
     }
   }
 
@@ -1552,16 +1436,16 @@ class _MoviePopupState extends State<_MoviePopup> {
                     initialValue: _status,
                     items: const [
                       DropdownMenuItem(
-                        value: 'Now Showing',
+                        value: 'Sedang Tayang',
                         child: Text('Sedang Tayang'),
                       ),
                       DropdownMenuItem(
-                        value: 'Coming Soon',
+                        value: 'Segera Tayang',
                         child: Text('Akan Datang'),
                       ),
                     ],
                     onChanged: (value) =>
-                        setState(() => _status = value ?? 'Now Showing'),
+                        setState(() => _status = value ?? 'Sedang Tayang'),
                     decoration: const InputDecoration(labelText: 'Status'),
                   ),
                   const SizedBox(height: 16),
@@ -1811,7 +1695,8 @@ class _MoviePopupState extends State<_MoviePopup> {
 
 class _AdsPopup extends StatefulWidget {
   final Future<void> Function(TextEditingController target) onPickImage;
-  const _AdsPopup({required this.onPickImage});
+  final PromotionItem? ad;
+  const _AdsPopup({required this.onPickImage, this.ad});
   @override
   State<_AdsPopup> createState() => _AdsPopupState();
 }
@@ -1819,14 +1704,22 @@ class _AdsPopup extends StatefulWidget {
 class _AdsPopupState extends State<_AdsPopup> {
   final _title = TextEditingController();
   final _image = TextEditingController();
-  final _link = TextEditingController();
   final _sort = TextEditingController(text: '0');
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.ad != null) {
+      _title.text = widget.ad!.title;
+      _image.text = widget.ad!.imageUrl;
+      _sort.text = widget.ad!.sortOrder.toString();
+    }
+  }
 
   @override
   void dispose() {
     _title.dispose();
     _image.dispose();
-    _link.dispose();
     _sort.dispose();
     super.dispose();
   }
@@ -1870,7 +1763,7 @@ class _AdsPopupState extends State<_AdsPopup> {
                 children: [
                   TextField(
                     controller: _title,
-                    decoration: const InputDecoration(labelText: 'Title'),
+                    decoration: const InputDecoration(labelText: 'Judul'),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -1881,7 +1774,7 @@ class _AdsPopupState extends State<_AdsPopup> {
                         if (mounted) setState(() {});
                       },
                       icon: const Icon(Icons.upload_file_rounded),
-                      label: const Text('Import banner from laptop'),
+                      label: const Text('Impor banner dari laptop'),
                     ),
                   ),
                   if (_image.text.isNotEmpty) ...[
@@ -1907,14 +1800,9 @@ class _AdsPopupState extends State<_AdsPopup> {
                   ],
                   const SizedBox(height: 12),
                   TextField(
-                    controller: _link,
-                    decoration: const InputDecoration(labelText: 'Link URL'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
                     controller: _sort,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Sort order'),
+                    decoration: const InputDecoration(labelText: 'Urutan Sortir'),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -1924,17 +1812,18 @@ class _AdsPopupState extends State<_AdsPopup> {
                         if (_image.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Banner image is required'),
+                              content: Text('Gambar banner wajib diisi'),
                             ),
                           );
                           return;
                         }
                         try {
                           await saveAdvertisement(
+                            id: widget.ad?.id,
                             title: _title.text,
                             imageUrl: _image.text,
-                            linkUrl: _link.text,
-                            active: true,
+                            linkUrl: '',
+                            active: widget.ad?.active ?? true,
                             sortOrder: int.tryParse(_sort.text) ?? 0,
                           );
                           if (!context.mounted) return;
@@ -1950,10 +1839,221 @@ class _AdsPopupState extends State<_AdsPopup> {
                         backgroundColor: CinemaTheme.accent,
                         foregroundColor: Colors.black,
                       ),
-                      child: const Text('Save Ad'),
+                      child: const Text('Simpan Iklan'),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SchedulePopup extends StatefulWidget {
+  final List<MovieData> movies;
+  final List<ScheduleSlot> schedules;
+  final ScheduleSlot? editingSchedule;
+
+  const _SchedulePopup({
+    super.key,
+    required this.movies,
+    required this.schedules,
+    this.editingSchedule,
+  });
+
+  @override
+  State<_SchedulePopup> createState() => _SchedulePopupState();
+}
+
+class _SchedulePopupState extends State<_SchedulePopup> {
+  MovieData? _selectedMovie;
+  String _scheduleDate = DateTime.now().add(const Duration(days: 1)).toString().split(' ')[0];
+  String _scheduleTime = '10:00:00';
+  String _hall = 'Studio 1';
+  final List<String> _timeOptions = ['10:00:00', '13:00:00', '16:00:00', '19:00:00', '22:00:00'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editingSchedule != null) {
+      _scheduleDate = widget.editingSchedule!.date;
+      _scheduleTime = widget.editingSchedule!.time;
+      String parsedHall = widget.editingSchedule!.hall.replaceAll('Hall', 'Studio');
+      if (!List.generate(5, (i) => 'Studio ${i + 1}').contains(parsedHall)) {
+        parsedHall = 'Studio 1';
+      }
+      _hall = parsedHall;
+      
+      _selectedMovie = widget.movies.cast<MovieData?>().firstWhere(
+        (m) => m?.title == widget.editingSchedule!.type,
+        orElse: () => null,
+      );
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final initial = DateTime.tryParse(_scheduleDate) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime.now().subtract(const Duration(days: 10)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _scheduleDate = picked.toString().split(' ')[0];
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final takenTimes = widget.schedules
+        .where((s) => s.date == _scheduleDate && s.hall == _hall && s.id != widget.editingSchedule?.id)
+        .map((s) => s.time)
+        .toSet();
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(20),
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 500),
+        decoration: BoxDecoration(
+          color: CinemaTheme.bg,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: CinemaTheme.cardAlt, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: CinemaTheme.cardAlt, width: 2)),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    widget.editingSchedule == null ? 'Add Schedule' : 'Edit Schedule',
+                    style: const TextStyle(
+                      color: CinemaTheme.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, color: CinemaTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<MovieData>(
+                      value: _selectedMovie,
+                      decoration: const InputDecoration(labelText: 'Pilih film'),
+                      items: widget.movies
+                          .map((movie) => DropdownMenuItem<MovieData>(
+                                value: movie,
+                                child: Text(movie.title),
+                              ))
+                          .toList(),
+                      onChanged: (movie) => setState(() => _selectedMovie = movie),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: _pickDate,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(labelText: 'Tanggal Tayang (YYYY-MM-DD)'),
+                        child: Text(_scheduleDate, style: const TextStyle(fontWeight: FontWeight.bold, color: CinemaTheme.textPrimary)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _hall,
+                      decoration: const InputDecoration(labelText: 'Studio'),
+                      items: List.generate(5, (index) => 'Studio ${index + 1}')
+                          .map((studio) => DropdownMenuItem(
+                                value: studio,
+                                child: Text(studio),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) setState(() => _hall = value);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Waktu Tayang', style: TextStyle(color: CinemaTheme.textSecondary, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _timeOptions.map((time) {
+                        final isTaken = takenTimes.contains(time);
+                        final isSelected = _scheduleTime == time;
+                        return ChoiceChip(
+                          label: Text(time.substring(0, 5)),
+                          selected: isSelected,
+                          onSelected: isTaken ? null : (selected) {
+                            if (selected) setState(() => _scheduleTime = time);
+                          },
+                          selectedColor: CinemaTheme.accent,
+                          labelStyle: TextStyle(
+                            color: isTaken ? CinemaTheme.textSecondary : (isSelected ? Colors.black : CinemaTheme.textPrimary),
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          backgroundColor: isTaken ? CinemaTheme.cardAlt.withValues(alpha: 0.5) : CinemaTheme.bg,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () async {
+                          if (_selectedMovie == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Silakan pilih film')),
+                            );
+                            return;
+                          }
+                          try {
+                            await saveAdminSchedule(
+                              id: widget.editingSchedule?.id,
+                              movieId: _selectedMovie!.id,
+                              date: _scheduleDate,
+                              time: _scheduleTime,
+                              hall: _hall,
+                            );
+                            if (!context.mounted) return;
+                            Navigator.pop(context, true);
+                          } catch (error) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Gagal menyimpan jadwal: $error')),
+                            );
+                          }
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: CinemaTheme.accent,
+                          foregroundColor: Colors.black,
+                        ),
+                        child: Text(widget.editingSchedule == null ? 'Simpan Jadwal' : 'Perbarui Jadwal'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

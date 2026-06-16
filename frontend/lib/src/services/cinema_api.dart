@@ -197,23 +197,28 @@ Future<List<PromotionItem>> fetchPromotions() async {
 }
 
 Future<void> saveAdvertisement({
+  int? id,
   required String title,
   required String imageUrl,
   String linkUrl = '',
   bool active = true,
   int sortOrder = 0,
 }) async {
-  final response = await http.post(
-    Uri.parse('$apiBaseUrl/api/ads'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'title': title,
-      'imageUrl': imageUrl,
-      'linkUrl': linkUrl,
-      'active': active,
-      'sortOrder': sortOrder,
-    }),
+  final isUpdate = id != null && id > 0;
+  final request = http.Request(
+    isUpdate ? 'PUT' : 'POST',
+    Uri.parse('$apiBaseUrl/api/ads${isUpdate ? '/$id' : ''}'),
   );
+  request.headers['Content-Type'] = 'application/json';
+  request.body = jsonEncode({
+    'title': title,
+    'imageUrl': imageUrl,
+    'linkUrl': linkUrl,
+    'active': active,
+    'sortOrder': sortOrder,
+  });
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
   if (response.statusCode != 200) {
     throw Exception(
       response.body.isNotEmpty ? response.body : 'Failed to save advertisement',
