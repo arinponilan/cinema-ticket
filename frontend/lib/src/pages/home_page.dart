@@ -81,7 +81,7 @@ class HomePage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Welcome back, $userName',
+                                'Selamat datang, $userName',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -93,8 +93,8 @@ class HomePage extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 role.toLowerCase() == 'admin'
-                                    ? 'Admin studio access'
-                                    : 'Premium cinema experience',
+                                    ? 'Akses studio admin'
+                                    : 'Pengalaman bioskop premium',
                                 style: const TextStyle(
                                   color: CinemaTheme.textSecondary,
                                   fontSize: 12,
@@ -120,7 +120,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Now Showing',
+                            'Sedang Tayang',
                             style: const TextStyle(
                               color: CinemaTheme.textPrimary,
                               fontSize: 18,
@@ -129,7 +129,7 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${nowShowing.length} films',
+                          '${nowShowing.length} film',
                           style: const TextStyle(
                             color: CinemaTheme.textSecondary,
                             fontSize: 12,
@@ -153,9 +153,9 @@ class HomePage extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: _emptyCard(
                               icon: Icons.wifi_off_rounded,
-                              title: 'Failed to load movies',
-                              message: 'Check the backend connection.',
-                              actionLabel: 'Retry',
+                              title: 'Gagal memuat film',
+                              message: 'Periksa koneksi backend.',
+                              actionLabel: 'Coba Lagi',
                               onAction: onRetryMovies,
                             ),
                           )
@@ -164,9 +164,9 @@ class HomePage extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: _emptyCard(
                               icon: Icons.movie_outlined,
-                              title: 'No now showing films',
+                              title: 'Tidak ada film yang sedang tayang',
                               message:
-                                  'Wait for admin to publish the schedule.',
+                                  'Tunggu admin mempublikasikan jadwal.',
                             ),
                           )
                         : ListView.separated(
@@ -192,7 +192,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Coming Soon',
+                            'Akan Datang',
                             style: const TextStyle(
                               color: CinemaTheme.textPrimary,
                               fontSize: 18,
@@ -201,7 +201,7 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${comingSoon.length} films',
+                          '${comingSoon.length} film',
                           style: const TextStyle(
                             color: CinemaTheme.textSecondary,
                             fontSize: 12,
@@ -219,8 +219,8 @@ class HomePage extends StatelessWidget {
                       ? SliverToBoxAdapter(
                           child: _emptyCard(
                             icon: Icons.upcoming_rounded,
-                            title: 'No coming soon films',
-                            message: 'New releases will appear here.',
+                            title: 'Tidak ada film yang akan datang',
+                            message: 'Rilisan baru akan muncul di sini.',
                           ),
                         )
                       : SliverList(

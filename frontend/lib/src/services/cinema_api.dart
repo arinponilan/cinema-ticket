@@ -255,6 +255,7 @@ Future<List<MovieData>> fetchAdminMovies() => fetchMovies();
 Future<MovieData> saveAdminMovie({
   int? id,
   required String title,
+  required String code,
   required String genre,
   required int duration,
   required String synopsis,
@@ -271,6 +272,7 @@ Future<MovieData> saveAdminMovie({
   request.body = jsonEncode({
     'id': id,
     'title': title,
+    'code': code,
     'genre': genre,
     'duration': duration,
     'synopsis': synopsis,

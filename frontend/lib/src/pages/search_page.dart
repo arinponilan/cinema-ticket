@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../models/cinema_models.dart';
 import '../theme/tc.dart';
@@ -40,12 +40,12 @@ class _SearchPageState extends State<SearchPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                cinemaSectionTitle('Browse Movies', subtitle: 'Search films from the backend'),
+                cinemaSectionTitle('Jelajahi Film', subtitle: 'Cari film dari server'),
                 const SizedBox(height: 14),
                 TextField(
                   onChanged: (value) => setState(() => _q = value),
                   decoration: const InputDecoration(
-                    hintText: 'Search title or genre',
+                    hintText: 'Cari judul atau genre',
                     prefixIcon: Icon(Icons.search_rounded),
                   ),
                 ),
@@ -56,10 +56,11 @@ class _SearchPageState extends State<SearchPage> {
                     scrollDirection: Axis.horizontal,
                     children: ['All', 'Now Showing', 'Coming Soon'].map((label) {
                       final selected = _filter == label;
+                      final String uiLabel = label == 'All' ? 'Semua' : (label == 'Now Showing' ? 'Sedang Tayang' : 'Akan Datang');
                       return Padding(
                         padding: const EdgeInsets.only(right: 10),
                         child: ChoiceChip(
-                          label: Text(label),
+                          label: Text(uiLabel),
                           selected: selected,
                           onSelected: (bool selected) => setState(() => _filter = label),
                           selectedColor: CinemaTheme.accent.withValues(alpha: 0.16),
@@ -74,7 +75,7 @@ class _SearchPageState extends State<SearchPage> {
                 const SizedBox(height: 14),
                 Expanded(
                   child: items.isEmpty
-                      ? const Center(child: Text('No movies found', style: TextStyle(color: CinemaTheme.textSecondary)))
+                      ? const Center(child: Text('Tidak ada film', style: TextStyle(color: CinemaTheme.textSecondary)))
                       : ListView.separated(
                           itemCount: items.length,
                           separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -132,11 +133,16 @@ class _MovieTile extends StatelessWidget {
                 const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: FilledButton(
-                    onPressed: () => onBook(movie),
-                    style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
-                    child: const Text('Book Tickets'),
-                  ),
+                  child: isComing 
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                          child: Text('Belum Rilis', style: TextStyle(color: CinemaTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                        )
+                      : FilledButton(
+                          onPressed: () => onBook(movie),
+                          style: FilledButton.styleFrom(backgroundColor: CinemaTheme.accent, foregroundColor: Colors.black),
+                          child: const Text('Pesan Tiket'),
+                        ),
                 ),
               ],
             ),

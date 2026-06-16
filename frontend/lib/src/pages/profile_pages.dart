@@ -37,35 +37,40 @@ class ProfilePage extends StatelessWidget {
             children: [
               _profileHeader(),
               const SizedBox(height: 14),
-              _profileStats(),
-              const SizedBox(height: 14),
               _menuTile(
                 icon: Icons.receipt_long_rounded,
-                title: 'Transaction History',
-                subtitle: 'Database-backed tickets',
+                title: 'Riwayat Transaksi',
+                subtitle: 'Tiket yang telah dipesan',
                 onTap: onOpenHistory,
               ),
               _menuTile(
                 icon: Icons.lock_reset_rounded,
-                title: 'Change Password',
-                subtitle: 'Update auth password',
+                title: 'Ubah Kata Sandi',
+                subtitle: 'Perbarui kata sandi akun',
                 onTap: onOpenChangePassword,
               ),
               if (onOpenAdmin != null)
                 _menuTile(
                   icon: Icons.admin_panel_settings_rounded,
-                  title: 'Admin Panel',
-                  subtitle: 'Manage films and schedules',
+                  title: 'Panel Admin',
+                  subtitle: 'Kelola film dan jadwal',
                   onTap: onOpenAdmin!,
                 ),
-              _menuTile(
-                icon: Icons.logout_rounded,
-                title: 'Logout',
-                subtitle: 'Sign out from this device',
-                onTap: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                  (route) => false,
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                    (route) => false,
+                  ),
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Keluar'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: CinemaTheme.danger,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -253,6 +258,8 @@ class ProfilePage extends StatelessWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Color iconColor = CinemaTheme.accent,
+    Color titleColor = CinemaTheme.textPrimary,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -269,7 +276,7 @@ class ProfilePage extends StatelessWidget {
                   color: CinemaTheme.cardAlt,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: CinemaTheme.accent, size: 22),
+                child: Icon(icon, color: iconColor, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -278,8 +285,8 @@ class ProfilePage extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: CinemaTheme.textPrimary,
+                      style: TextStyle(
+                        color: titleColor,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -811,6 +818,7 @@ class _AdminPanelPageState extends State<AdminPanelPage>
                       onPressed: () async {
                         await saveAdminMovie(
                           title: _movieTitle.text,
+                          code: _movieTitle.text.toLowerCase().replaceAll(' ', '_'),
                           genre: _movieGenre.text,
                           duration: int.tryParse(_movieDuration.text) ?? 0,
                           synopsis: _movieSynopsis.text,

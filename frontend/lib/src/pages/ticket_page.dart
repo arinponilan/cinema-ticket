@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import 'package:cinema_mobile/src/models/cinema_models.dart';
 import 'package:cinema_mobile/src/services/cinema_api.dart';
@@ -44,7 +44,7 @@ class TicketPageState extends State<TicketPage> with AutomaticKeepAliveClientMix
                   children: [
                     const Expanded(
                       child: Text(
-                        'Tickets',
+                        'Tiket',
                         style: TextStyle(
                           color: CinemaTheme.textPrimary,
                           fontSize: 18,
@@ -71,7 +71,7 @@ class TicketPageState extends State<TicketPage> with AutomaticKeepAliveClientMix
                     if (snapshot.hasError) {
                       return Center(
                         child: Text(
-                          'Failed to load tickets',
+                          'Gagal memuat tiket',
                           style: const TextStyle(color: CinemaTheme.textSecondary),
                         ),
                       );
@@ -84,9 +84,9 @@ class TicketPageState extends State<TicketPage> with AutomaticKeepAliveClientMix
                           children: [
                             Icon(Icons.confirmation_number_outlined, color: CinemaTheme.textSecondary, size: 64),
                             SizedBox(height: 16),
-                            Text('No Tickets Yet', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
-                            SizedBox(height: 6),
-                            Text('Book a movie to get your tickets here.', style: TextStyle(color: CinemaTheme.textSecondary, fontSize: 13)),
+                            Text('Belum ada tiket', style: TextStyle(color: CinemaTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+                            SizedBox(height: 8),
+                            Text('Pesan film untuk melihat tiket di sini.', style: TextStyle(color: CinemaTheme.textSecondary, fontSize: 13)),
                           ],
                         ),
                       );

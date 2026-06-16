@@ -168,22 +168,22 @@ class _MainContainerState extends State<MainContainer> {
             NavigationDestination(
               icon: Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home_rounded),
-              label: 'Home',
+              label: 'Beranda',
             ),
             NavigationDestination(
               icon: Icon(Icons.search_rounded),
               selectedIcon: Icon(Icons.search_rounded),
-              label: 'Search',
+              label: 'Cari',
             ),
             NavigationDestination(
               icon: Icon(Icons.confirmation_number_outlined),
               selectedIcon: Icon(Icons.confirmation_number),
-              label: 'Tickets',
+              label: 'Tiket',
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline_rounded),
               selectedIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
+              label: 'Profil',
             ),
           ],
         ),

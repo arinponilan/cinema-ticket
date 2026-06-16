@@ -10,6 +10,7 @@ class MovieData {
   final double price;
   final String imgUrl;
   final String status;
+  final String? code;
 
   MovieData(
     this.title,
@@ -20,6 +21,7 @@ class MovieData {
     this.synopsis = '',
     this.price = 0,
     this.status = 'Now Showing',
+    this.code,
   });
 
   factory MovieData.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class MovieData {
       price: doubleValue(json['price']),
       status: (json['status'] ?? json['movieStatus'] ?? 'Now Showing')
           .toString(),
+      code: json['code']?.toString(),
     );
   }
 
@@ -71,6 +74,7 @@ class SeatModel {
 class ScheduleSlot {
   final int id;
   final String time;
+  final String? endTime;
   final String date;
   final String hall;
   final String type;
@@ -79,6 +83,7 @@ class ScheduleSlot {
   ScheduleSlot({
     this.id = 0,
     required this.time,
+    this.endTime,
     this.date = '',
     required this.hall,
     required this.type,
@@ -91,6 +96,7 @@ class ScheduleSlot {
         json['scheduleId'] ?? json['schedule_id'] ?? json['id'],
       ),
       time: _formatTime((json['time'] ?? '').toString()),
+      endTime: json['endTime'] != null ? _formatTime(json['endTime'].toString()) : null,
       date: (json['date'] ?? '').toString(),
       hall: (json['hall'] ?? json['studio'] ?? 'Hall 1').toString(),
       type: (json['type'] ?? json['format'] ?? 'Reguler 2D').toString(),

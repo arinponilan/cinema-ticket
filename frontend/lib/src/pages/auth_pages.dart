@@ -81,7 +81,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           children: [
             const Text(
-              "Create Account",
+              "Buat Akun",
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
@@ -89,21 +89,21 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const Text(
-              "Join the premiere cinema club",
+              "Bergabung dengan bioskop premiere",
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 50),
-            _field(_nameCtrl, "Full Name", Icons.person),
+            _field(_nameCtrl, "Nama Lengkap", Icons.person),
             const SizedBox(height: 20),
             _field(_emailCtrl, "Email", Icons.email),
             const SizedBox(height: 20),
             _field(
               _passCtrl,
-              "Password",
+              "Kata Sandi",
               Icons.lock,
               obscure: !_showPassword,
               suffixIcon: IconButton(
-                tooltip: _showPassword ? 'Hide password' : 'Show password',
+                tooltip: _showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi',
                 onPressed: () => setState(() => _showPassword = !_showPassword),
                 icon: Icon(
                   _showPassword
@@ -116,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 20),
             SwitchListTile(
               title: const Text(
-                "Register as Admin?",
+                "Daftar sebagai Admin?",
                 style: TextStyle(color: Colors.white),
               ),
               value: _role == 'Admin',
@@ -138,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     child: const Text(
-                      "REGISTER",
+                      "DAFTAR",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -293,11 +293,11 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               _field(
                 _passCtrl,
-                "Password",
+                "Kata Sandi",
                 Icons.lock,
                 obscure: !_showPassword,
                 suffixIcon: IconButton(
-                  tooltip: _showPassword ? 'Hide password' : 'Show password',
+                  tooltip: _showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi',
                   onPressed: () =>
                       setState(() => _showPassword = !_showPassword),
                   icon: Icon(
@@ -322,7 +322,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       child: const Text(
-                        "SIGN IN",
+                        "MASUK",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -336,7 +336,7 @@ class _LoginPageState extends State<LoginPage> {
                   MaterialPageRoute(builder: (_) => const RegisterPage()),
                 ),
                 child: const Text(
-                  "Don't have an account? Register",
+                  "Belum punya akun? Daftar",
                   style: TextStyle(color: Colors.amber),
                 ),
               ),

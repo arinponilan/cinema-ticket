@@ -1,4 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:async';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:intl/intl.dart';
 
 import 'package:cinema_mobile/src/app_config.dart';
 import 'package:cinema_mobile/src/models/cinema_models.dart';
@@ -50,7 +54,7 @@ class _ScheduleSelectionPageState extends State<ScheduleSelectionPage> {
           icon: const Icon(Icons.arrow_back_ios_new, color: TC.accent),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Choose Schedule'),
+        title: const Text('Pilih Jadwal'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -72,9 +76,9 @@ class _ScheduleSelectionPageState extends State<ScheduleSelectionPage> {
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 25),
-            const Text(
-              'Available sessions',
-              style: TextStyle(
+            Text(
+              'Jadwal Hari Ini: ${DateFormat('d MMM yyyy').format(DateTime.now())}',
+              style: const TextStyle(
                 color: TC.textSec,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -118,7 +122,18 @@ class _ScheduleSelectionPageState extends State<ScheduleSelectionPage> {
                         (slot) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: GestureDetector(
-                            onTap: () => widget.onSelectSchedule(slot),
+                            onTap: () {
+                              final updatedSlot = ScheduleSlot(
+                                id: slot.id,
+                                time: slot.time,
+                                endTime: slot.endTime,
+                                date: DateFormat('d MMM yyyy').format(DateTime.now()),
+                                hall: slot.hall,
+                                type: slot.type,
+                                bookedSeats: slot.bookedSeats,
+                              );
+                              widget.onSelectSchedule(updatedSlot);
+                            },
                             child: Container(
                               padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
@@ -346,7 +361,7 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
                   ),
                   const Expanded(
                     child: Text(
-                      'SELECT SEATS',
+                      'PILIH KURSI',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: TC.accent,
@@ -395,7 +410,7 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
                     Column(
                       children: [
                         const Text(
-                          'SCREEN',
+                          'LAYAR',
                           style: TextStyle(
                             color: TC.textSec,
                             fontSize: 9,
@@ -485,11 +500,11 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _leg(TC.seatAvail, 'Available'),
+                        _leg(TC.seatAvail, 'Tersedia'),
                         const SizedBox(width: 20),
-                        _leg(TC.seatSel, 'Selected'),
+                        _leg(TC.seatSel, 'Dipilih'),
                         const SizedBox(width: 20),
-                        _leg(TC.seatBook, 'Booked'),
+                        _leg(TC.seatBook, 'Terisi'),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -515,7 +530,7 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'TOTAL PRICE',
+                            'TOTAL HARGA',
                             style: TextStyle(
                               color: TC.textSec,
                               fontSize: 10,
@@ -536,7 +551,7 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           const Text(
-                            'SEATS',
+                            'KURSI',
                             style: TextStyle(
                               color: TC.textSec,
                               fontSize: 10,
@@ -586,7 +601,7 @@ class _SeatSelectionPageState extends State<SeatSelectionPage> {
                         elevation: 0,
                       ),
                       child: const Text(
-                        'CONFIRM SELECTION',
+                        'KONFIRMASI PILIHAN',
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 14,
@@ -736,6 +751,7 @@ class ReviewOrderPage extends StatefulWidget {
 
 class _ReviewOrderPageState extends State<ReviewOrderPage> {
   bool _isSubmitting = false;
+  String _selectedMethod = 'QRIS';
 
   String get _seatLabel => widget.selectedSeats.map((s) => s.id).join(', ');
   double get _subtotal => widget.selectedSeats.length * widget.ticketPrice;
@@ -775,7 +791,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                   ),
                   const Expanded(
                     child: Text(
-                      'REVIEW ORDER',
+                      'RINGKASAN PESANAN',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: TC.accent,
@@ -879,7 +895,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                     ),
                     const SizedBox(height: 18),
                     const Text(
-                      'PAYMENT METHOD',
+                      'METODE PEMBAYARAN',
                       style: TextStyle(
                         color: TC.textSec,
                         fontSize: 11,
@@ -889,9 +905,19 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                     ),
                     const SizedBox(height: 10),
                     _payOpt(
-                      icon: Icons.account_balance_wallet_outlined,
-                      title: 'E-Wallet',
-                      sub: 'Bayar dengan dompet digital',
+                      icon: Icons.account_balance,
+                      title: 'Virtual Account',
+                      sub: 'Bayar via transfer bank',
+                      isSelected: _selectedMethod == 'Virtual Account',
+                      onTap: () => setState(() => _selectedMethod = 'Virtual Account'),
+                    ),
+                    const SizedBox(height: 10),
+                    _payOpt(
+                      icon: Icons.qr_code_2_rounded,
+                      title: 'QRIS',
+                      sub: 'Bayar pakai aplikasi apa saja',
+                      isSelected: _selectedMethod == 'QRIS',
+                      onTap: () => setState(() => _selectedMethod = 'QRIS'),
                     ),
                     const SizedBox(height: 18),
                     Container(
@@ -905,17 +931,17 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                       ),
                       child: Column(
                         children: [
-                          _feeRow('Seats', _seatLabel),
+                          _feeRow('Kursi', _seatLabel),
                           const SizedBox(height: 10),
                           _feeRow(
-                            'Tickets',
+                            'Tiket',
                             '${widget.selectedSeats.length} x ${formatRupiah(widget.ticketPrice)}',
                           ),
                           const SizedBox(height: 10),
                           _feeRow('Subtotal', formatRupiah(_subtotal)),
                           const SizedBox(height: 10),
                           _feeRow(
-                            'Convenience Fee',
+                            'Biaya Layanan',
                             formatRupiah(widget.convFee),
                           ),
                           const SizedBox(height: 14),
@@ -925,7 +951,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
-                                'Grand Total',
+                                'Total Pembayaran',
                                 style: TextStyle(
                                   color: TC.textPri,
                                   fontSize: 15,
@@ -960,7 +986,31 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _confirmAndSave,
+                  onPressed: _isSubmitting
+                      ? null
+                      : () {
+                          if (_selectedMethod == 'QRIS') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => QrisPaymentPage(
+                                  grandTotal: _grandTotal,
+                                  onPaid: _confirmAndSave,
+                                ),
+                              ),
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => VirtualAccountPaymentPage(
+                                  grandTotal: _grandTotal,
+                                  onPaid: _confirmAndSave,
+                                ),
+                              ),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: TC.accent,
                     disabledBackgroundColor: const Color(0xFF3A3A3A),
@@ -981,7 +1031,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                           ),
                         )
                       : const Text(
-                          'PAY & CONFIRM',
+                          'BAYAR',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 14,
@@ -1002,59 +1052,64 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
     required IconData icon,
     required String title,
     required String sub,
+    required bool isSelected,
+    required VoidCallback onTap,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: TC.accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: TC.accent, width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: TC.accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? TC.accent.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: isSelected ? TC.accent : TC.surface, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isSelected ? TC.accent.withValues(alpha: 0.15) : TC.surface,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: isSelected ? TC.accent : TC.textHint, size: 20),
             ),
-            child: Icon(icon, color: TC.accent, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: TC.textPri,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: isSelected ? TC.textPri : TC.textSec,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  sub,
-                  style: const TextStyle(color: TC.textHint, fontSize: 12),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    sub,
+                    style: const TextStyle(color: TC.textHint, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: TC.accent,
-              border: Border.all(color: TC.accent, width: 1.5),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? TC.accent : Colors.transparent,
+                border: Border.all(color: isSelected ? TC.accent : TC.textHint, width: 1.5),
+              ),
+              child: isSelected ? const Icon(Icons.check, color: Colors.black, size: 13) : null,
             ),
-            child: const Icon(Icons.check, color: Colors.black, size: 13),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1136,7 +1191,7 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Booking Confirmed!',
+                'Pemesanan Berhasil!',
                 style: TextStyle(
                   color: TC.textPri,
                   fontSize: 20,
@@ -1158,7 +1213,13 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
                 ),
                 child: Column(
                   children: [
-                    _dRow('Seats', _seatLabel, TC.accent),
+                    _dRow('Studio', widget.schedule.hall, TC.textPri),
+                    const SizedBox(height: 8),
+                    _dRow('Tanggal', widget.schedule.date.isEmpty ? 'Hari Ini' : widget.schedule.date, TC.textPri),
+                    const SizedBox(height: 8),
+                    _dRow('Jadwal', widget.schedule.time, TC.textPri),
+                    const SizedBox(height: 8),
+                    _dRow('Kursi', _seatLabel, TC.accent),
                     const SizedBox(height: 8),
                     _dRow('Metode', methodLabel, TC.textPri),
                     const SizedBox(height: 8),
@@ -1244,5 +1305,322 @@ class _ReviewOrderPageState extends State<ReviewOrderPage> {
   );
 }
 
+// ════════════════════════════════════════════════════════════════════════════════
+// SCREEN 3 — QRIS PAYMENT
+// ════════════════════════════════════════════════════════════════════════════════
+class QrisPaymentPage extends StatefulWidget {
+  final double grandTotal;
+  final Future<void> Function() onPaid;
 
+  const QrisPaymentPage({
+    super.key,
+    required this.grandTotal,
+    required this.onPaid,
+  });
 
+  @override
+  State<QrisPaymentPage> createState() => _QrisPaymentPageState();
+}
+class _QrisPaymentPageState extends State<QrisPaymentPage> {
+  bool _isChecking = false;
+  late Timer _timer;
+  late DateTime _dueDate;
+  Duration _remaining = const Duration(minutes: 15);
+
+  @override
+  void initState() {
+    super.initState();
+    _dueDate = DateTime.now().add(_remaining);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _remaining = _dueDate.difference(DateTime.now());
+          if (_remaining.isNegative) {
+            _timer.cancel();
+            _remaining = Duration.zero;
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    final month = monthNames[_dueDate.month - 1];
+    final minuteStr = _dueDate.minute.toString().padLeft(2, '0');
+    final dateStr = '${_dueDate.day} $month ${_dueDate.year}, ${_dueDate.hour}:$minuteStr';
+
+    final h = _remaining.inHours.toString().padLeft(2, '0');
+    final m = _remaining.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final countdownStr = '$h : $m : $s';
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Pembayaran',
+          style: TextStyle(color: Colors.black, fontSize: 18),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Pembayaran', style: TextStyle(color: Colors.black, fontSize: 14)),
+                  Text(
+                    formatRupiah(widget.grandTotal),
+                    style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const Divider(height: 32, color: Colors.grey),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Batas Pembayaran', style: TextStyle(color: Colors.black, fontSize: 14)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(countdownStr, style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Jatuh tempo $dateStr', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                ],
+              ),
+              const Divider(height: 32, color: Colors.grey),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, spreadRadius: 2),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    QrImageView(
+                      data: 'https://qris.id/pay?amount=${widget.grandTotal.toInt()}&ref=TIXTIX',
+                      version: QrVersions.auto,
+                      size: 250.0,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('NMID:ID2025444802321', style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isChecking ? null : () async {
+                    setState(() => _isChecking = true);
+                    await widget.onPaid();
+                    if (mounted) setState(() => _isChecking = false);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TC.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: _isChecking 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                      : const Text('CEK STATUS PEMBAYARAN', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// SCREEN 4 — VIRTUAL ACCOUNT PAYMENT
+// ════════════════════════════════════════════════════════════════════════════════
+class VirtualAccountPaymentPage extends StatefulWidget {
+  final double grandTotal;
+  final Future<void> Function() onPaid;
+
+  const VirtualAccountPaymentPage({
+    super.key,
+    required this.grandTotal,
+    required this.onPaid,
+  });
+
+  @override
+  State<VirtualAccountPaymentPage> createState() => _VirtualAccountPaymentPageState();
+}
+
+class _VirtualAccountPaymentPageState extends State<VirtualAccountPaymentPage> {
+  bool _isChecking = false;
+  late Timer _timer;
+  late DateTime _dueDate;
+  Duration _remaining = const Duration(minutes: 60); // VA usually 1 hour
+  final String _vaNumber = '880192837465920';
+
+  @override
+  void initState() {
+    super.initState();
+    _dueDate = DateTime.now().add(_remaining);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _remaining = _dueDate.difference(DateTime.now());
+          if (_remaining.isNegative) {
+            _timer.cancel();
+            _remaining = Duration.zero;
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    final month = monthNames[_dueDate.month - 1];
+    final minuteStr = _dueDate.minute.toString().padLeft(2, '0');
+    final dateStr = '${_dueDate.day} $month ${_dueDate.year}, ${_dueDate.hour}:$minuteStr';
+
+    final h = _remaining.inHours.toString().padLeft(2, '0');
+    final m = _remaining.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final countdownStr = '$h : $m : $s';
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Pembayaran Virtual Account',
+          style: TextStyle(color: Colors.black, fontSize: 18),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Pembayaran', style: TextStyle(color: Colors.black, fontSize: 14)),
+                  Text(
+                    formatRupiah(widget.grandTotal),
+                    style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const Divider(height: 32, color: Colors.grey),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Batas Pembayaran', style: TextStyle(color: Colors.black, fontSize: 14)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(countdownStr, style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Jatuh tempo $dateStr', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                ],
+              ),
+              const Divider(height: 32, color: Colors.grey),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, spreadRadius: 2),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.account_balance, color: TC.accent, size: 64),
+                    const SizedBox(height: 20),
+                    const Text('Nomor Virtual Account', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                    const SizedBox(height: 8),
+                    Text(
+                      _vaNumber,
+                      style: const TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2),
+                    ),
+                    const SizedBox(height: 24),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _vaNumber));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Nomor VA disalin!')),
+                        );
+                      },
+                      icon: const Icon(Icons.copy, color: TC.accent),
+                      label: const Text('Salin Kode', style: TextStyle(color: TC.accent, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: TC.accent),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isChecking ? null : () async {
+                    setState(() => _isChecking = true);
+                    await widget.onPaid();
+                    if (mounted) setState(() => _isChecking = false);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TC.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: _isChecking 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                      : const Text('CEK STATUS PEMBAYARAN', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
