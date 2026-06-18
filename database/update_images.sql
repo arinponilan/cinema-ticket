@@ -1,0 +1,13 @@
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg' WHERE title = 'Dune: Part Two';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/4/4c/Deadpool_%26_Wolverine_poster.jpg' WHERE title = 'Deadpool & Wolverine';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/f/f7/Inside_Out_2_poster.jpg' WHERE title = 'Inside Out 2';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/a/a4/Transformers_One_Official_Poster.jpg' WHERE title = 'Transformers One';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/b/be/Godzilla_x_kong_the_new_empire_poster.jpg' WHERE title = 'Godzilla x Kong: The New Empire';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/7/7f/Kung_Fu_Panda_4_poster.jpg' WHERE title = 'Kung Fu Panda 4';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/e/ed/Mission-_Impossible_%E2%80%93_Dead_Reckoning_Part_One_poster.jpg' WHERE title LIKE 'Mission: Impossible%';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/5/54/Avatar_The_Way_of_Water_poster.jpg' WHERE title = 'Avatar: The Way of Water';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/0/0b/Mufasa_The_Lion_King_Movie_2024.jpeg' WHERE title = 'Mufasa: The Lion King';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/e/e8/Joker_-_Folie_%C3%A0_Deux_poster.jpg' WHERE title = 'Joker: Folie à Deux';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/a/a3/Venom_The_Last_Dance_Poster.jpg' WHERE title = 'Venom: The Last Dance';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/0/04/Gladiator_II_%282024%29_poster.jpg' WHERE title = 'Gladiator II';
+UPDATE movies SET image_url = 'https://upload.wikimedia.org/wikipedia/en/e/ec/Kraven_the_Hunter_%28film%29_poster.jpg' WHERE title = 'Kraven the Hunter';

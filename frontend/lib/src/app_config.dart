@@ -1,12 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 String get apiBaseUrl {
-  const configuredUrl = String.fromEnvironment('API_BASE_URL');
-  if (configuredUrl.isNotEmpty) {
-    return configuredUrl;
-  }
-
-  return defaultTargetPlatform == TargetPlatform.android
-      ? 'http://10.0.2.2:8082'
-      : 'http://localhost:8082';
+  return 'http://192.168.100.116:8082';
 }
+
+

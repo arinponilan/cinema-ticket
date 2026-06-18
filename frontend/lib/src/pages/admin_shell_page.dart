@@ -1919,7 +1919,7 @@ class _SchedulePopupState extends State<_SchedulePopup> {
   Widget build(BuildContext context) {
     final takenTimes = widget.schedules
         .where((s) => s.date == _scheduleDate && s.hall == _hall && s.id != widget.editingSchedule?.id)
-        .map((s) => s.time)
+        .map((s) => s.time.length >= 5 ? s.time.substring(0, 5) : s.time)
         .toSet();
 
     return Dialog(
@@ -1968,6 +1968,7 @@ class _SchedulePopupState extends State<_SchedulePopup> {
                   children: [
                     DropdownButtonFormField<MovieData>(
                       value: _selectedMovie,
+                      isExpanded: true,
                       decoration: const InputDecoration(labelText: 'Pilih film'),
                       items: widget.movies
                           .map((movie) => DropdownMenuItem<MovieData>(
@@ -1988,6 +1989,7 @@ class _SchedulePopupState extends State<_SchedulePopup> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _hall,
+                      isExpanded: true,
                       decoration: const InputDecoration(labelText: 'Studio'),
                       items: List.generate(5, (index) => 'Studio ${index + 1}')
                           .map((studio) => DropdownMenuItem(
@@ -2006,10 +2008,12 @@ class _SchedulePopupState extends State<_SchedulePopup> {
                       spacing: 8,
                       runSpacing: 8,
                       children: _timeOptions.map((time) {
-                        final isTaken = takenTimes.contains(time);
-                        final isSelected = _scheduleTime == time;
+                        final timePrefix = time.length >= 5 ? time.substring(0, 5) : time;
+                        final isTaken = takenTimes.contains(timePrefix);
+                        final scheduleTimePrefix = _scheduleTime.length >= 5 ? _scheduleTime.substring(0, 5) : _scheduleTime;
+                        final isSelected = scheduleTimePrefix == timePrefix;
                         return ChoiceChip(
-                          label: Text(time.substring(0, 5)),
+                          label: Text(timePrefix),
                           selected: isSelected,
                           onSelected: isTaken ? null : (selected) {
                             if (selected) setState(() => _scheduleTime = time);
@@ -2034,6 +2038,26 @@ class _SchedulePopupState extends State<_SchedulePopup> {
                             );
                             return;
                           }
+                          
+                          // Validasi konflik jadwal sebelum menyimpan
+                          final selectTimePrefix = _scheduleTime.length >= 5 ? _scheduleTime.substring(0, 5) : _scheduleTime;
+                          final hasConflict = widget.schedules.any((s) =>
+                            s.date == _scheduleDate &&
+                            s.hall == _hall &&
+                            s.id != widget.editingSchedule?.id &&
+                            (s.time.length >= 5 ? s.time.substring(0, 5) : s.time) == selectTimePrefix
+                          );
+
+                          if (hasConflict) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Studio dan jam tayang tersebut sudah terisi oleh film lain!'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
                           try {
                             await saveAdminSchedule(
                               id: widget.editingSchedule?.id,

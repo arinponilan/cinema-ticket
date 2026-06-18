@@ -1395,12 +1395,15 @@ class _QrisPaymentPageState extends State<QrisPaymentPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Batas Pembayaran', style: TextStyle(color: Colors.black, fontSize: 14)),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(countdownStr, style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text('Jatuh tempo $dateStr', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(countdownStr, style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text('Jatuh tempo $dateStr', style: const TextStyle(color: Colors.grey, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1547,12 +1550,15 @@ class _VirtualAccountPaymentPageState extends State<VirtualAccountPaymentPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Batas Pembayaran', style: TextStyle(color: Colors.black, fontSize: 14)),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(countdownStr, style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text('Jatuh tempo $dateStr', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(countdownStr, style: const TextStyle(color: Colors.deepOrange, fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text('Jatuh tempo $dateStr', style: const TextStyle(color: Colors.grey, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
                   ),
                 ],
               ),
