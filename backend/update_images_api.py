@@ -17,12 +17,10 @@ urls = {
     "Kraven the Hunter": "https://upload.wikimedia.org/wikipedia/en/e/ec/Kraven_the_Hunter_%28film%29_poster.jpg",
     "Oppenheimer": "https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_FMjpg_UX1000_.jpg",
     "The Batman": "https://m.media-amazon.com/images/M/MV5BMDExZGMyOTMtMDgyYi00NGIwLWJhMTEtOTdkZGFjNmZiMTEwXkEyXkFqcGdeQXVyMjM4NTM5NDY@._V1_FMjpg_UX1000_.jpg",
-    "Despicable Me 4": "https://upload.wikimedia.org/wikipedia/en/8/8a/Despicable_Me_4_poster.jpg",
-    "Wicked": "https://upload.wikimedia.org/wikipedia/en/8/86/Wicked_2024_poster.jpg"
 }
 
 # 1. Get all movies
-req = urllib.request.Request("http://localhost:8082/api/admin/movies")
+req = urllib.request.Request("http://localhost:8081/api/admin/movies")
 with urllib.request.urlopen(req) as response:
     movies = json.loads(response.read().decode())
 
@@ -30,11 +28,11 @@ with urllib.request.urlopen(req) as response:
 for movie in movies:
     title = movie['title']
     if title in urls:
-        movie['imageUrl'] = urls[title]  # Using imageUrl or imgUrl matching the API entity property
+        movie['imgUrl'] = urls[title]
         
         # PUT request
         put_req = urllib.request.Request(
-            f"http://localhost:8082/api/admin/movies/{movie['id']}",
+            f"http://localhost:8081/api/admin/movies/{movie['id']}",
             data=json.dumps(movie).encode('utf-8'),
             headers={'Content-Type': 'application/json'},
             method='PUT'
@@ -44,4 +42,3 @@ for movie in movies:
                 print(f"Updated {title}")
         except Exception as e:
             print(f"Failed to update {title}: {e}")
-
