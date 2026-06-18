@@ -380,6 +380,7 @@ class _PromotionBannerState extends State<_PromotionBanner> {
                     children: [
                       Image.network(
                         promo.imageUrl,
+                        headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: CinemaTheme.cardAlt,
@@ -486,6 +487,7 @@ class _NowShowingCard extends StatelessWidget {
                 aspectRatio: 2 / 3,
                 child: Image.network(
                   movie.imgUrl,
+                  headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: CinemaTheme.cardAlt,
@@ -559,6 +561,7 @@ class _ComingSoonCard extends StatelessWidget {
               height: 120,
               child: Image.network(
                 movie.imgUrl,
+                headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: CinemaTheme.cardAlt,

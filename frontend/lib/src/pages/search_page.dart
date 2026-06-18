@@ -108,6 +108,7 @@ class _MovieTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
               movie.imgUrl,
+              headers: const {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
               width: 78,
               height: 110,
               fit: BoxFit.cover,
